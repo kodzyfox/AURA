@@ -13,6 +13,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self.didFinishInitialLaunch = true
             LaunchAtLoginManager.shared.refresh()
         }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            if UpdateManager.shared.autoCheckOnLaunch {
+                UpdateManager.shared.checkForUpdates(manual: false)
+            }
+        }
     }
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -79,6 +84,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                             NSApplication.AboutPanelOptionKey(rawValue: "Copyright"): "by Kodzy"
                         ]
                     )
+                }
+                
+                Button(L10n.checkUpdatesMenu) {
+                    UpdateManager.shared.checkForUpdates(manual: true)
                 }
             }
             

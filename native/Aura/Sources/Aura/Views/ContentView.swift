@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var spotifyTestResult: ConnectionTestResult?
     @State private var musicTestResult: ConnectionTestResult?
     @State private var customAccentColor: Color = AccentColorManager.shared.accent
+    @ObservedObject private var updater = UpdateManager.shared
     
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
@@ -246,15 +247,23 @@ struct ContentView: View {
                         Button {
                             withAnimation(.easeInOut(duration: 0.2)) { section = item }
                         } label: {
-                            Label(item.localizedTitle, systemImage: item.symbol)
-                                .font(.system(size: 12, weight: section == item ? .semibold : .regular))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
-                                .background(
-                                    section == item ? Theme.accent.opacity(0.15) : Color.clear,
-                                    in: RoundedRectangle(cornerRadius: 8)
-                                )
+                            HStack(spacing: 8) {
+                                Label(item.localizedTitle, systemImage: item.symbol)
+                                    .font(.system(size: 12, weight: section == item ? .semibold : .regular))
+                                Spacer()
+                                if item == .settings && updater.updateAvailable {
+                                    Circle()
+                                        .fill(Color.orange)
+                                        .frame(width: 7, height: 7)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(
+                                section == item ? Theme.accent.opacity(0.15) : Color.clear,
+                                in: RoundedRectangle(cornerRadius: 8)
+                            )
                         }
                         .buttonStyle(.plain)
                         .foregroundStyle(section == item ? Theme.accent : Theme.textSecondary)
@@ -911,7 +920,10 @@ struct ContentView: View {
             .background(Theme.cardBackground.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.cardBorder))
             
-            // 7. О программе Aura
+            // 7. Обновление ПО (Software Update)
+            softwareUpdateCard
+            
+            // 8. О программе Aura
             HStack(spacing: 16) {
                 if let icon = appIconImage {
                     Image(nsImage: icon)
@@ -929,7 +941,7 @@ struct ContentView: View {
                     HStack(spacing: 8) {
                         Text("Aura")
                             .font(.system(size: 15, weight: .bold))
-                        Text("v1.0")
+                        Text("v\(updater.currentVersion)")
                             .font(.system(size: 11, weight: .medium))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
@@ -963,6 +975,295 @@ struct ContentView: View {
             .background(Theme.cardBackground.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.cardBorder))
         }
+    }
+    
+    // MARK: - Карточка обновления ПО (Software Update)
+    private var softwareUpdateCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 10) {
+                Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(updater.updateAvailable ? Color.orange : Theme.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 8) {
+                        Text(L10n.updatesSectionTitle)
+                            .font(.system(size: 14, weight: .bold))
+                        
+                        if updater.updateAvailable {
+                            Text(L10n.newVersionAvailable)
+                                .font(.system(size: 10, weight: .bold))
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 2)
+                                .background(Color.orange.opacity(0.18), in: Capsule())
+                                .foregroundStyle(Color.orange)
+                        }
+                    }
+                    Text(L10n.updatesSectionSubtitle)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.textSecondary)
+                }
+                
+                Spacer()
+                
+                // Кнопка проверки
+                Button {
+                    updater.checkForUpdates(manual: true)
+                } label: {
+                    HStack(spacing: 6) {
+                        if updater.isChecking {
+                            ProgressView()
+                                .controlSize(.small)
+                                .scaleEffect(0.7)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        Text(updater.isChecking ? L10n.checkingUpdates : L10n.checkUpdatesButton)
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: 8))
+                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.cardBorder))
+                }
+                .buttonStyle(.plain)
+                .disabled(updater.isChecking)
+            }
+            
+            // Текущая версия и статус
+            HStack(spacing: 14) {
+                HStack(spacing: 6) {
+                    Text("\(L10n.currentVersionLabel):")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.textTertiary)
+                    Text("v\(updater.currentVersion)")
+                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(Theme.textPrimary)
+                }
+                
+                Divider().frame(height: 12).opacity(0.4)
+                
+                if let lastCheck = updater.lastCheckedDate {
+                    HStack(spacing: 5) {
+                        Text("\(L10n.lastChecked):")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.textTertiary)
+                        Text(lastCheck, style: .time)
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.textSecondary)
+                    }
+                }
+                
+                Spacer()
+                
+                if updater.isUpToDate && !updater.updateAvailable {
+                    HStack(spacing: 5) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.green)
+                        Text(L10n.upToDate)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Theme.green)
+                    }
+                }
+            }
+            .padding(.horizontal, 4)
+            
+            // Если есть ошибка проверки
+            if let err = updater.errorMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(Color.red)
+                    Text(err)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.textSecondary)
+                }
+                .padding(10)
+                .background(Color.red.opacity(0.10), in: RoundedRectangle(cornerRadius: 8))
+            }
+            
+            // БЛОК ДОСТУПНОГО ОБНОВЛЕНИЯ
+            if let release = updater.latestRelease, updater.updateAvailable {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Aura v\(release.versionString)")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundStyle(Theme.textPrimary)
+                            if let releaseName = release.name, !releaseName.isEmpty {
+                                Text(releaseName)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(Theme.accent)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        Button {
+                            if let url = URL(string: release.htmlUrl) {
+                                NSWorkspace.shared.open(url)
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(L10n.viewOnGitHub)
+                                    .font(.system(size: 11))
+                                Image(systemName: "arrow.up.right")
+                                    .font(.system(size: 9))
+                            }
+                            .foregroundStyle(Theme.textTertiary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
+                    // Список изменений (Release Notes)
+                    if let notes = release.body, !notes.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(L10n.releaseNotesTitle)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(Theme.textSecondary)
+                            
+                            ScrollView {
+                                Text(notes)
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(Theme.textPrimary.opacity(0.85))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .textSelection(.enabled)
+                            }
+                            .frame(maxHeight: 120)
+                            .padding(10)
+                            .background(Theme.cardBackground.opacity(0.7), in: RoundedRectangle(cornerRadius: 8))
+                            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.cardBorder))
+                        }
+                    }
+                    
+                    // Состояние загрузки / установки
+                    switch updater.downloadState {
+                    case .idle:
+                        HStack(spacing: 12) {
+                            Button {
+                                updater.startDownload()
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "arrow.down.circle.fill")
+                                    Text(L10n.downloadAndInstall)
+                                }
+                                .font(.system(size: 12, weight: .bold))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Theme.accentGradient, in: RoundedRectangle(cornerRadius: 8))
+                                .foregroundStyle(.white)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        
+                    case .downloading(let progress, let read, let total):
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text(L10n.downloading)
+                                    .font(.system(size: 12, weight: .medium))
+                                Spacer()
+                                Text(String(format: "%.1f MB / %.1f MB (%.0f%%)", Double(read) / 1_048_576.0, Double(total) / 1_048_576.0, progress * 100))
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundStyle(Theme.textSecondary)
+                            }
+                            
+                            ProgressView(value: progress)
+                                .tint(Theme.accent)
+                            
+                            Button(L10n.cancelDownload) {
+                                updater.cancelDownload()
+                            }
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.textTertiary)
+                            .buttonStyle(.plain)
+                        }
+                        .padding(12)
+                        .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: 8))
+                        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.cardBorder))
+                        
+                    case .readyToInstall:
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(Theme.green)
+                                Text(L10n.readyToInstallDesc)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(Theme.textPrimary)
+                            }
+                            
+                            HStack(spacing: 12) {
+                                Button {
+                                    updater.installAndRelaunch()
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "restart.circle.fill")
+                                        Text(L10n.installAndRelaunch)
+                                    }
+                                    .font(.system(size: 12, weight: .bold))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(Theme.green, in: RoundedRectangle(cornerRadius: 8))
+                                    .foregroundStyle(.black)
+                                }
+                                .buttonStyle(.plain)
+                                
+                                Button {
+                                    updater.openDMGDirectly()
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "externaldrive")
+                                        Text(L10n.openDMG)
+                                    }
+                                    .font(.system(size: 12, weight: .medium))
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 8)
+                                    .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: 8))
+                                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.cardBorder))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(12)
+                        .background(Theme.green.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.green.opacity(0.3)))
+                        
+                    case .failed(let msg):
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(msg)
+                                .font(.system(size: 11))
+                                .foregroundStyle(Color.red)
+                            Button(L10n.downloadAndInstall) {
+                                updater.startDownload()
+                            }
+                            .font(.system(size: 11, weight: .medium))
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .padding(16)
+                .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.accent.opacity(0.4)))
+            }
+            
+            Divider().opacity(0.4)
+            
+            // Автоматическая проверка обновлений при запуске
+            Toggle(isOn: $updater.autoCheckOnLaunch) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L10n.autoCheckOnLaunch)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Theme.textPrimary)
+                    Text(L10n.autoCheckOnLaunchSub)
+                        .font(.system(size: 10))
+                        .foregroundStyle(Theme.textTertiary)
+                }
+            }
+            .toggleStyle(.switch)
+            .padding(.horizontal, 2)
+        }
+        .padding(20)
+        .background(Theme.cardBackground.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(updater.updateAvailable ? Color.orange.opacity(0.4) : Theme.cardBorder))
     }
     
     // MARK: - Topbar

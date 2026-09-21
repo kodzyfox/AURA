@@ -744,5 +744,67 @@ public struct L10n {
     public static var onboardingSkip: String {
         current == .ru ? "Пропустить" : "Skip"
     }
+    
+    // MARK: - Software Updates (Обновление ПО)
+    public static var updatesSectionTitle: String {
+        current == .ru ? "Обновление ПО" : "Software Update"
+    }
+    public static var updatesSectionSubtitle: String {
+        current == .ru ? "Проверка наличия и установка свежих версий Aura" : "Check for and install new Aura releases"
+    }
+    public static var checkUpdatesButton: String {
+        current == .ru ? "Проверить обновления" : "Check for Updates"
+    }
+    public static var checkingUpdates: String {
+        current == .ru ? "Проверка наличия обновлений..." : "Checking for updates..."
+    }
+    public static var upToDate: String {
+        current == .ru ? "У вас установлена последняя версия" : "Aura is up to date"
+    }
+    public static var newVersionAvailable: String {
+        current == .ru ? "Доступна новая версия" : "New Version Available"
+    }
+    public static var currentVersionLabel: String {
+        current == .ru ? "Текущая версия" : "Current Version"
+    }
+    public static var latestVersionLabel: String {
+        current == .ru ? "Свежая версия" : "Latest Version"
+    }
+    public static var downloadAndInstall: String {
+        current == .ru ? "Скачать и обновить" : "Download & Update"
+    }
+    public static var downloading: String {
+        current == .ru ? "Загрузка обновления..." : "Downloading update..."
+    }
+    public static var installAndRelaunch: String {
+        current == .ru ? "Перезапустить и обновить" : "Relaunch & Install"
+    }
+    public static var openDMG: String {
+        current == .ru ? "Открыть образ диска (DMG)" : "Open Disk Image (DMG)"
+    }
+    public static var viewOnGitHub: String {
+        current == .ru ? "Смотреть на GitHub" : "View on GitHub"
+    }
+    public static var autoCheckOnLaunch: String {
+        current == .ru ? "Проверять обновления автоматически" : "Automatically check for updates"
+    }
+    public static var autoCheckOnLaunchSub: String {
+        current == .ru ? "Проверять наличие новых версий при запуске Aura" : "Check for new versions on Aura startup"
+    }
+    public static var releaseNotesTitle: String {
+        current == .ru ? "Что нового в этом обновлении" : "What's New in this Release"
+    }
+    public static var lastChecked: String {
+        current == .ru ? "Последняя проверка" : "Last checked"
+    }
+    public static var cancelDownload: String {
+        current == .ru ? "Отмена" : "Cancel"
+    }
+    public static var checkUpdatesMenu: String {
+        current == .ru ? "Проверить обновления..." : "Check for Updates..."
+    }
+    public static var readyToInstallDesc: String {
+        current == .ru ? "Обновление успешно загружено и готово к установке." : "Update successfully downloaded and ready to install."
+    }
 }
 

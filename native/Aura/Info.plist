@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>Aura</string>
+    <key>CFBundleDisplayName</key>
+    <string>Aura</string>
+    <key>CFBundleIdentifier</key>
+    <string>studio.aura.mac</string>
+    <key>CFBundleExecutable</key>
+    <string>Aura</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundleIconName</key>
+    <string>AppIcon</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.1</string>
+    <key>CFBundleVersion</key>
+    <string>2</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>by Kodzy</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>NSAppSleepDisabled</key>
+    <true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Aura читает название и обложку текущего трека и управляет воспроизведением в Spotify и Apple Music для динамических обоев и атмосферного свечения.</string>
+    <key>NSDesktopFolderUsageDescription</key>
+    <string>Aura сохраняет и обновляет динамические обои рабочего стола с обложками текущих треков.</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>studio.aura.mac</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>aura</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>

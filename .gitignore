@@ -1,0 +1,32 @@
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Swift Package Manager & Xcode
+.build/
+Packages/
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+
+# Aura Build & Distribution Artifacts
+native/Aura/.build/
+native/Aura/dist/
+dist/
+*.dmg
+
+# Media & Recordings
+*.mp4
+*.mov
+
+# Temporary, Scratch & Local Agent Tooling
+scratch/
+.agents/
+brag-output/
+*.swp
+*~

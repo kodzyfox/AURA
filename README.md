@@ -12,7 +12,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/platform-macOS%2014.0%2B%20(Sonoma%20%7C%20Sequoia)-black?style=for-the-badge&logo=apple" alt="macOS 14+" />
   <img src="https://img.shields.io/badge/swift-5.9%2B%20%7C%20Swift%206%20Ready-F05138?style=for-the-badge&logo=swift&logoColor=white" alt="Swift 5.9+" />
-  <img src="https://img.shields.io/badge/architecture-Universal%20(Apple%20Silicon%20%2F%20Intel)-007AFF?style=for-the-badge" alt="Architecture" />
+  <img src="https://img.shields.io/badge/architecture-Apple%20Silicon%20(arm64)-007AFF?style=for-the-badge&logo=apple" alt="Apple Silicon" />
+  <img src="https://img.shields.io/badge/license-Proprietary-red?style=for-the-badge" alt="Proprietary License" />
   <img src="https://img.shields.io/badge/dependencies-0%20(100%25%20Native)-success?style=for-the-badge" alt="Dependencies: 0" />
 </p>
 
@@ -148,7 +149,7 @@ native/Aura/
 ## System Requirements
 
 - **Operating System**: macOS 14.0 (Sonoma) or macOS 15.0+ (Sequoia)
-- **Architecture**: Universal binary (Apple Silicon M1/M2/M3/M4 & Intel x86_64)
+- **Architecture**: Apple Silicon (M1 / M2 / M3 / M4, arm64 only)
 - **Supported Players**: Spotify (Free & Premium), Apple Music, or Local Audio files (MP3, M4A, FLAC, WAV, AIFF)
 - **Build Requirements**: Xcode 15+ or Xcode Command Line Tools (`swift --version` $\ge 5.9$)
 
@@ -298,7 +299,7 @@ Aura поддерживает **Spotify**, **Apple Music** и **локальны
 ## Системные требования
 
 - **Операционная система**: macOS 14.0 (Sonoma) или macOS 15.0+ (Sequoia)
-- **Архитектура процессора**: Apple Silicon (M1/M2/M3/M4) или Intel (x86_64)
+- **Архитектура процессора**: Только Apple Silicon (M1 / M2 / M3 / M4, arm64)
 - **Поддерживаемые плееры**: Spotify (Free / Premium), Apple Music, либо локальные файлы (FLAC, MP3, M4A, WAV, AIFF)
 - **Инструменты для сборки**: Xcode 15+ или Xcode Command Line Tools (`swift --version` $\ge 5.9$)
 
@@ -346,4 +347,8 @@ open /Applications/Aura.app
 
 ## Лицензия / License
 
-Distributed under the **MIT License**. Created by [Kodzy](https://github.com/kodzyfox).
+**AURA Proprietary License (All Rights Reserved) / Проприетарная лицензия (Все права защищены)**  
+Copyright © 2024–2026 [Kodzy](https://github.com/kodzyfox).
+
+- **English**: Personal, non-commercial use only. Any modification, patching, decompilation, redistribution, sublicensing, or creation of derivative works without prior express written permission from the author is strictly prohibited. Full legal terms: [LICENSE](LICENSE).
+- **Русский**: Программа предназначена исключительно для личного некоммерческого использования. Любая модификация, декомпиляция, внесение изменений, повторное распространение или создание производных продуктов без явного предварительного письменного согласия автора строго запрещены. Полный текст лицензии: [LICENSE](LICENSE).

@@ -1,0 +1,46 @@
+AURA PROPRIETARY LICENSE (ALL RIGHTS RESERVED)
+
+Copyright © 2024–2026 Kodzy (https://github.com/kodzyfox). All Rights Reserved.
+
+================================================================================
+TERMS AND CONDITIONS FOR USE
+================================================================================
+
+1. GRANT OF LICENSE
+Subject to the terms of this License, the author ("Kodzy") grants you a personal,
+non-exclusive, non-transferable, revocable license to install, execute, and run the
+Software on Apple Silicon macOS devices solely for your own personal, non-commercial
+purposes.
+
+The source code is provided on a source-available basis exclusively for personal review,
+learning, and security auditing.
+
+2. STRICT PROHIBITIONS & RESTRICTIONS
+You expressly agree NOT to, and will not permit any third party to:
+
+a. MODIFY OR ALTER: Modify, translate, adapt, patch, reconfigure, or create derivative
+   works based upon the Software or any part of its source code, assets, or binaries.
+b. REVERSE ENGINEER: Decompile, disassemble, reverse engineer, or otherwise attempt
+   to derive the design, structure, or inner workings of binary distributions, except
+   to the extent permitted by applicable law.
+c. REDISTRIBUTE: Distribute, publish, sublicense, rent, lease, lend, sell, or
+   otherwise transfer the Software, in whole or in part, modified or unmodified,
+   to any third party without explicit prior written authorization from the author.
+d. COMMERCIAL USE: Use the Software or any portion of its code for any commercial,
+   business, or revenue-generating purpose.
+e. REMOVE NOTICES: Remove, alter, or obscure any copyright notices, authorship credits,
+   trademarks, or proprietary markings present in the Software or documentation.
+
+3. INTELLECTUAL PROPERTY
+All title, ownership rights, trademarks, and intellectual property rights in and to
+the Software (including without limitation any graphics, sound visualizers, DSP algorithms,
+interface designs, code, and documentation) remain the sole and exclusive property
+of Kodzy.
+
+4. DISCLAIMER OF WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, TITLE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, LOSS OF USE, DATA, OR PROFITS) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

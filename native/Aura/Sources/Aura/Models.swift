@@ -173,6 +173,9 @@ enum Effect: String, CaseIterable, Identifiable, Codable {
     case aurora = "Северное сияние"
     case vinyl = "Винил"
     case minimal = "Минимализм"
+    case nebula = "Туманность"
+    case cyberGrid = "Кибер-сетка"
+    case supernova = "Сверхновая"
     
     var id: String { rawValue }
     
@@ -196,6 +199,12 @@ enum Effect: String, CaseIterable, Identifiable, Codable {
         case (.vinyl, .en): return "Vinyl"
         case (.minimal, .ru): return "Минимализм"
         case (.minimal, .en): return "Minimal"
+        case (.nebula, .ru): return "Жидкая туманность"
+        case (.nebula, .en): return "Fluid Nebula"
+        case (.cyberGrid, .ru): return "Кибер-сетка"
+        case (.cyberGrid, .en): return "Cyber Grid"
+        case (.supernova, .ru): return "Сверхновая"
+        case (.supernova, .en): return "Supernova"
         }
     }
     var symbol: String {
@@ -209,6 +218,91 @@ enum Effect: String, CaseIterable, Identifiable, Codable {
         case .minimal: return "square.stack"
         case .vinyl: return "opticaldisc"
         case .aurora: return "wind"
+        case .nebula: return "smoke.fill"
+        case .cyberGrid: return "grid"
+        case .supernova: return "sparkle"
+        }
+    }
+
+    var gradientColors: [Color] {
+        switch self {
+        case .aura:
+            return [Theme.accent, Theme.accentSecondary]
+        case .neonPulse:
+            return [Color(red: 0.0, green: 0.95, blue: 1.0), Color(red: 0.85, green: 0.27, blue: 0.94)]
+        case .prism:
+            return [Color(red: 0.0, green: 0.85, blue: 1.0), Color(red: 0.95, green: 0.25, blue: 0.75), Color(red: 1.0, green: 0.75, blue: 0.20)]
+        case .cosmicBreath:
+            return [Color(red: 0.08, green: 0.12, blue: 0.35), Color(red: 0.60, green: 0.20, blue: 0.90), Color(red: 0.0, green: 0.90, blue: 1.0)]
+        case .waves:
+            return [Color(red: 0.10, green: 0.80, blue: 0.90), Color(red: 0.15, green: 0.40, blue: 0.70)]
+        case .orbit:
+            return [Color.purple.opacity(0.85), Color.indigo, Color.cyan]
+        case .aurora:
+            return [Color.mint, Color.purple, Color.blue]
+        case .vinyl:
+            return [Color(white: 0.25), Color.black]
+        case .minimal:
+            return [Color.gray.opacity(0.6), Color.black.opacity(0.8)]
+        case .nebula:
+            return [Color(red: 0.10, green: 0.85, blue: 0.95), Color(red: 0.85, green: 0.20, blue: 0.90), Color(red: 0.20, green: 0.40, blue: 1.0)]
+        case .cyberGrid:
+            return [Color(red: 1.0, green: 0.20, blue: 0.65), Color(red: 0.0, green: 0.95, blue: 1.0), Color(red: 0.50, green: 0.10, blue: 0.90)]
+        case .supernova:
+            return [Color(red: 1.0, green: 0.75, blue: 0.20), Color(red: 1.0, green: 0.30, blue: 0.50), Color(red: 0.30, green: 0.85, blue: 1.0)]
+        }
+    }
+
+    var localizedDescription: String {
+        switch (self, L10n.current) {
+        case (.aura, .ru): return "Мягкое сферическое сияние, плавно следующее за ритмом музыки."
+        case (.aura, .en): return "Soft spherical bloom smoothly following the musical rhythm."
+        case (.neonPulse, .ru): return "Ритмичные неоновые световые волны по периметру и контуру артворка."
+        case (.neonPulse, .en): return "Rhythmic neon lightwaves along artwork borders and contour."
+        case (.prism, .ru): return "Хроматическая дисперсия: переливающиеся спектральные призменные лучи."
+        case (.prism, .en): return "Chromatic dispersion: shimmering spectral prismatic rays."
+        case (.cosmicBreath, .ru): return "Глубокая пульсирующая туманность с мягким космическим дыханием."
+        case (.cosmicBreath, .en): return "Deep pulsating nebula with gentle cosmic breathing."
+        case (.waves, .ru): return "Динамические световые кольца и интерференционные волны света."
+        case (.waves, .en): return "Dynamic light rings and optical interference waves."
+        case (.orbit, .ru): return "Наклонные 3D-орбиты с парящими спутниками вокруг обложки."
+        case (.orbit, .en): return "Tilted 3D orbits with floating satellites around artwork."
+        case (.minimal, .ru): return "Фокус только на главном: чистый артворк и мягкий глубокий блюр."
+        case (.minimal, .en): return "Focus on essentials: clean artwork and deep soft blur."
+        case (.vinyl, .ru): return "Вращающаяся виниловая пластинка с круговыми канавками и отражениями."
+        case (.vinyl, .en): return "Spinning vinyl record with micro-grooves and reflections."
+        case (.aurora, .ru): return "Северное сияние: медленно колышущиеся неоновые ленты света."
+        case (.aurora, .en): return "Northern Lights: gently swaying ribbons of polar light."
+        case (.nebula, _): return L10n.effectNebulaDesc
+        case (.cyberGrid, _): return L10n.effectCyberGridDesc
+        case (.supernova, _): return L10n.effectSupernovaDesc
+        }
+    }
+}
+
+enum NotchGlowMode: String, CaseIterable, Identifiable, Codable {
+    case ambientHalo = "ambientHalo"
+    case audioWings = "audioWings"
+    case dynamicIsland = "dynamicIsland"
+    
+    var id: String { rawValue }
+    
+    var localizedName: String {
+        switch (self, L10n.current) {
+        case (.ambientHalo, .ru): return "Неоновый ореол"
+        case (.ambientHalo, .en): return "Ambient Halo"
+        case (.audioWings, .ru): return "Эквалайзер-крылья"
+        case (.audioWings, .en): return "Audio Wings"
+        case (.dynamicIsland, .ru): return "Dynamic Island HUD"
+        case (.dynamicIsland, .en): return "Dynamic Island HUD"
+        }
+    }
+    
+    var symbol: String {
+        switch self {
+        case .ambientHalo: return "sparkles"
+        case .audioWings: return "waveform.path.ecg"
+        case .dynamicIsland: return "capsule.portrait"
         }
     }
 }
@@ -264,7 +358,7 @@ struct Atmosphere: Codable, Equatable {
     var showInfo: Bool = true
     var palette: Int = 0 // 0..7
     
-    // Новые атмосферные эффекты
+    // Атмосферные эффекты
     var showPlayerOnLockScreen: Bool = true // Виджет мини-плеера на экране блокировки
     var showPlayerOnDesktop: Bool = false   // Виджет мини-плеера на рабочем столе (по умолчанию выключен)
     var edgeGlow: Bool = true              // Пульсирующее свечение по краям экрана
@@ -272,11 +366,17 @@ struct Atmosphere: Codable, Equatable {
     var edgeGlowOpacity: Double = 0.70     // Яркость свечения (10% - 100%)
     var edgeGlowThickness: Double = 140.0  // Размер / толщина свечения (40 - 240px)
     var edgeGlowSpeed: Double = 1.0        // Скорость пульсации и перелива
-    var edgeGlowColorIndex: Int = 0        // 0: Обложка, 1: Радужный спектр, 2: Северное сияние, 3: Неоновый закат, 4: Янтарь, 5: Неон циан, 6: Пурпур, 7: Изумруд, 8: Белый
-    var coverZoomLevel: Double = 0.80      // Сбалансированный масштаб обложки (без пикселей)
-    var filmGrain: Bool = false            // Тонкая текстура кинопленки
+    var edgeGlowColorIndex: Int = 0        // 0: Обложка, 1..8: Пресеты
+    var coverZoomLevel: Double = 0.80      // Масштаб обложки
+    var filmGrain: Bool = false            // Текстура пленки
 
-    // Performance controls are intentionally persisted with the atmosphere preset.
+    // Свечение вокруг выреза экрана / Dynamic Island
+    var notchGlow: Bool = true             // Свечение вокруг выреза экрана
+    var notchGlowMode: NotchGlowMode = .dynamicIsland // Режим (.ambientHalo, .audioWings, .dynamicIsland)
+    var notchGlowRadius: Double = 24.0      // Радиус свечения вокруг выреза (10 - 45px)
+    var notchHUDOnTrackChange: Bool = true  // Автораскрытие мини-капсулы при смене трека
+
+    // Performance controls
     var visualQuality: VisualQuality = .automatic
     var energySaving: Bool = true
     
@@ -285,6 +385,46 @@ struct Atmosphere: Codable, Equatable {
     var reactiveMode: ReactiveMode = .beatPulse // Режим реакции (.beatPulse, .spectrum, .ambientWave)
     var reactiveSensitivity: Double = 1.0       // Чувствительность пульсации (0.5 - 2.0)
     var coverAnimation: CoverAnimation = .beatPulse // Режим анимации (пульсации) обложки
+    
+    // Инициализатор по умолчанию
+    init() {}
+    
+    // Безопасное декодирование со 100% обратной совместимостью старых пресетов
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        effect = try container.decodeIfPresent(Effect.self, forKey: .effect) ?? .aura
+        intensity = try container.decodeIfPresent(Double.self, forKey: .intensity) ?? 0.65
+        speed = try container.decodeIfPresent(Double.self, forKey: .speed) ?? 0.35
+        blurRadius = try container.decodeIfPresent(Double.self, forKey: .blurRadius) ?? 18.0
+        glowScale = try container.decodeIfPresent(Double.self, forKey: .glowScale) ?? 1.0
+        showClock = try container.decodeIfPresent(Bool.self, forKey: .showClock) ?? false
+        showInfo = try container.decodeIfPresent(Bool.self, forKey: .showInfo) ?? true
+        palette = try container.decodeIfPresent(Int.self, forKey: .palette) ?? 0
+        
+        showPlayerOnLockScreen = try container.decodeIfPresent(Bool.self, forKey: .showPlayerOnLockScreen) ?? true
+        showPlayerOnDesktop = try container.decodeIfPresent(Bool.self, forKey: .showPlayerOnDesktop) ?? false
+        edgeGlow = try container.decodeIfPresent(Bool.self, forKey: .edgeGlow) ?? true
+        animatedDesktopCover = try container.decodeIfPresent(Bool.self, forKey: .animatedDesktopCover) ?? true
+        edgeGlowOpacity = try container.decodeIfPresent(Double.self, forKey: .edgeGlowOpacity) ?? 0.70
+        edgeGlowThickness = try container.decodeIfPresent(Double.self, forKey: .edgeGlowThickness) ?? 140.0
+        edgeGlowSpeed = try container.decodeIfPresent(Double.self, forKey: .edgeGlowSpeed) ?? 1.0
+        edgeGlowColorIndex = try container.decodeIfPresent(Int.self, forKey: .edgeGlowColorIndex) ?? 0
+        coverZoomLevel = try container.decodeIfPresent(Double.self, forKey: .coverZoomLevel) ?? 0.80
+        filmGrain = try container.decodeIfPresent(Bool.self, forKey: .filmGrain) ?? false
+        
+        notchGlow = try container.decodeIfPresent(Bool.self, forKey: .notchGlow) ?? true
+        notchGlowMode = try container.decodeIfPresent(NotchGlowMode.self, forKey: .notchGlowMode) ?? .dynamicIsland
+        notchGlowRadius = try container.decodeIfPresent(Double.self, forKey: .notchGlowRadius) ?? 24.0
+        notchHUDOnTrackChange = try container.decodeIfPresent(Bool.self, forKey: .notchHUDOnTrackChange) ?? true
+        
+        visualQuality = try container.decodeIfPresent(VisualQuality.self, forKey: .visualQuality) ?? .automatic
+        energySaving = try container.decodeIfPresent(Bool.self, forKey: .energySaving) ?? true
+        
+        audioReactive = try container.decodeIfPresent(Bool.self, forKey: .audioReactive) ?? true
+        reactiveMode = try container.decodeIfPresent(ReactiveMode.self, forKey: .reactiveMode) ?? .beatPulse
+        reactiveSensitivity = try container.decodeIfPresent(Double.self, forKey: .reactiveSensitivity) ?? 1.0
+        coverAnimation = try container.decodeIfPresent(CoverAnimation.self, forKey: .coverAnimation) ?? .beatPulse
+    }
     
     // Обратная совместимость
     var showPlayerOnWallpaper: Bool {

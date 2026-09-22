@@ -35,6 +35,7 @@ import SwiftUI
             if activePlayerName != oldValue {
                 handlePlaybackChange()
                 DesktopOverlayManager.shared.updateOverlayState()
+            NotchOverlayManager.shared.updateOverlayState()
             }
         }
     }
@@ -48,6 +49,7 @@ import SwiftUI
                 }
                 handlePlaybackChange()
                 DesktopOverlayManager.shared.updateOverlayState()
+            NotchOverlayManager.shared.updateOverlayState()
                 exportWidgetState()
             }
         }
@@ -128,6 +130,7 @@ import SwiftUI
             saveSettings()
             scheduleWallpaperUpdate(delay: 0.15)
             DesktopOverlayManager.shared.updateOverlayState()
+            NotchOverlayManager.shared.updateOverlayState()
         }
     }
 
@@ -637,6 +640,7 @@ import SwiftUI
         guard dynamicWallpaperEnabled, playing, activePlayerName != nil else {
             wallpaperCoordinator.restore()
             DesktopOverlayManager.shared.updateOverlayState()
+            NotchOverlayManager.shared.updateOverlayState()
             return
         }
         let info = WallpaperTrackInfo(
@@ -670,6 +674,7 @@ import SwiftUI
             wallpaperCoordinator.restore()
             // Оверлей убираем через updateOverlayState чтобы сработала плавная анимация fadeOut (380мс)
             DesktopOverlayManager.shared.updateOverlayState()
+            NotchOverlayManager.shared.updateOverlayState()
         }
     }
 

@@ -130,6 +130,12 @@ struct AtmosphereView: View {
                     cosmicBreathView(t: t, size: artSize)
                 case .aura:
                     auraGlowView(t: t, size: artSize, beatImpact: beatImpact)
+                case .nebula:
+                    nebulaView(t: t, size: artSize, beatImpact: beatImpact)
+                case .cyberGrid:
+                    cyberGridView(t: t, size: artSize, beatImpact: beatImpact)
+                case .supernova:
+                    supernovaView(t: t, size: artSize, beatImpact: beatImpact)
                 case .vinyl, .minimal:
                     EmptyView()
                 }
@@ -574,5 +580,162 @@ struct AtmosphereView: View {
             .blendMode(.screen)
         }
     }
+    
+    // MARK: - Новые визуальные эффекты
+    
+    // Эффект: Жидкая туманность (Fluid Nebula)
+    @ViewBuilder
+    private func nebulaView(t: Double, size: CGFloat, beatImpact: Double) -> some View {
+        let (c1, c2, c3) = artworkGlowColors
+        let orbColors = [c1, c2, c3, c1]
+        
+        ZStack {
+            // Центральное светящееся плазменное кольцо
+            Circle()
+                .stroke(
+                    AngularGradient(
+                        colors: [c1, c2, c3, c1],
+                        center: .center,
+                        startAngle: .degrees(t * 40),
+                        endAngle: .degrees(t * 40 + 360)
+                    ),
+                    lineWidth: max(4.0, 12.0 * CGFloat(beatImpact))
+                )
+                .frame(width: size * 1.35, height: size * 1.35)
+                .blur(radius: 14)
+                .scaleEffect(1.0 + CGFloat(beatImpact * 0.16))
+                .blendMode(.screen)
+            
+            // 4 органические переливающиеся сферы туманности
+            ForEach(0..<4, id: \.self) { i in
+                let angle = t * (0.6 + Double(i) * 0.2) + Double(i) * (.pi / 2.0)
+                let radius = size * (0.55 + Double(i) * 0.12)
+                let x = cos(angle) * radius
+                let y = sin(angle * 1.3) * (radius * 0.85)
+                let orbSize = size * (0.75 + Double(i) * 0.15)
+                
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                orbColors[i].opacity(0.65 * music.settings.intensity),
+                                orbColors[i].opacity(0.25 * music.settings.intensity),
+                                .clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: orbSize / 2.0
+                        )
+                    )
+                    .frame(width: orbSize, height: orbSize)
+                    .offset(x: x, y: y)
+                    .blur(radius: 22)
+                    .scaleEffect(1.0 + CGFloat(beatImpact * 0.22))
+                    .blendMode(.screen)
+            }
+        }
+    }
+    
+    // Эффект: Кибер-сетка (Cyber Grid)
+    @ViewBuilder
+    private func cyberGridView(t: Double, size: CGFloat, beatImpact: Double) -> some View {
+        let (c1, c2, _) = artworkGlowColors
+        let gridWidth = size * 2.2
+        let gridHeight = size * 1.4
+        
+        ZStack {
+            // Неоновая линия горизонта с сиянием
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [.clear, c1.opacity(0.85 * music.settings.intensity), .clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: gridWidth, height: 2.5 + CGFloat(beatImpact * 3.0))
+                .offset(y: size * 0.38)
+                .blur(radius: 2)
+                .shadow(color: c1, radius: 8)
+            
+            // 3D-плоскость сетки горизонта
+            ZStack {
+                // Горизонтальные бегущие линии (перспектива)
+                ForEach(0..<7, id: \.self) { i in
+                    let step = (Double(i) / 7.0 + t * 0.4).truncatingRemainder(dividingBy: 1.0)
+                    let yPos = pow(step, 2.0) * (gridHeight * 0.75)
+                    let lineOpacity = (1.0 - step) * 0.45 * music.settings.intensity
+                    
+                    Rectangle()
+                        .fill(c2.opacity(lineOpacity))
+                        .frame(width: gridWidth * (0.3 + step * 0.7), height: 1.2)
+                        .offset(y: yPos)
+                }
+                
+                // Продольные лучи сетки, уходящие в глубину
+                ForEach(-4...4, id: \.self) { i in
+                    let xOffset = CGFloat(i) * (gridWidth * 0.10)
+                    Path { path in
+                        path.move(to: CGPoint(x: gridWidth / 2.0 + xOffset * 0.2, y: 0))
+                        path.addLine(to: CGPoint(x: gridWidth / 2.0 + xOffset * 1.4, y: gridHeight * 0.75))
+                    }
+                    .stroke(c1.opacity(0.28 * music.settings.intensity), lineWidth: 1.0)
+                    .frame(width: gridWidth, height: gridHeight * 0.75)
+                }
+            }
+            .frame(width: gridWidth, height: gridHeight * 0.75)
+            .offset(y: size * 0.40)
+            .rotation3DEffect(.degrees(65), axis: (x: 1, y: 0, z: 0))
+        }
+    }
+    
+    // Эффект: Сверхновая (Supernova)
+    @ViewBuilder
+    private func supernovaView(t: Double, size: CGFloat, beatImpact: Double) -> some View {
+        let (c1, c2, c3) = artworkGlowColors
+        let burstScale = 1.0 + CGFloat(beatImpact * 0.55)
+        
+        ZStack {
+            // Вспышка взрывной ударной волны при ударе бочки
+            Circle()
+                .stroke(
+                    c1.opacity((0.25 + beatImpact * 0.65) * music.settings.intensity),
+                    lineWidth: 1.5 + CGFloat(beatImpact * 2.5)
+                )
+                .frame(width: size * 1.55 * burstScale, height: size * 1.55 * burstScale)
+                .blur(radius: 3)
+                .shadow(color: c1.opacity(0.8), radius: 10)
+            
+            // Вторичное кольцо световых частиц
+            Circle()
+                .stroke(
+                    c2.opacity(0.35 * music.settings.intensity),
+                    style: StrokeStyle(lineWidth: 1.2, dash: [4, 8])
+                )
+                .frame(width: size * 1.85, height: size * 1.85)
+                .rotationEffect(.degrees(t * 30))
+            
+            // Радиальные звездные лучи
+            ForEach(0..<12, id: \.self) { i in
+                let angle = Double(i) * 30.0 + t * 12.0
+                let rayLen = size * (0.65 + Double(i % 3) * 0.18) * (1.0 + beatImpact * 0.35)
+                let col = (i % 2 == 0) ? c1 : c3
+                
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [col.opacity(0.7 * music.settings.intensity), .clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: 2.0, height: rayLen)
+                    .offset(y: -(size * 0.65 + rayLen / 2.0))
+                    .rotationEffect(.degrees(angle))
+                    .blendMode(.screen)
+            }
+        }
+    }
 }
+
 

@@ -127,6 +127,8 @@ native/Aura/
         ├── PlayerAutomationService.swift  # Swift Actor: async AppleScript IPC for Spotify & Apple Music
         ├── WallpaperManager.swift         # Multi-monitor CoreImage wallpaper compositor & restoration
         ├── DesktopOverlayManager.swift    # Transparent desktop window anchored at kCGDesktopWindowLevel
+        ├── NotchGeometryHelper.swift      # Hardware-accurate MacBook camera notch & capsule geometry
+        ├── NotchOverlayManager.swift      # Ambient notch halo, audio wings & Dynamic Island HUD overlay
         ├── ColorExtractor.swift           # Hardware-accelerated k-means palette extraction & HSB booster
         ├── ArtworkFetcher.swift           # High-resolution artwork resolver (Spotify CDN, Deezer, iTunes)
         ├── LastFMService.swift            # Last.fm 2.0 API client, offline cache & MD5 signing
@@ -137,6 +139,7 @@ native/Aura/
         └── Views/
             ├── ContentView.swift          # Main dashboard, sidebar navigation & detailed settings
             ├── EdgeGlowView.swift         # Real-time Ambilight perimeter glow with BPM wave motion
+            ├── NotchGlowView.swift        # Dynamic Notch glow halo, visualizer wings & interactive HUD
             ├── AtmosphereView.swift       # Generative audio atmosphere & 21-band EQ visualizer
             ├── CoverView.swift            # Fullscreen immersive artwork stage
             ├── MiniPlayerView.swift       # Floating always-on-top glass player

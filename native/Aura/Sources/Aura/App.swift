@@ -40,6 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         // Мгновенный возврат исходных обоев и закрытие оверлеев
         DesktopOverlayManager.shared.closeAll()
+        NotchOverlayManager.shared.closeAll()
         WallpaperCoordinator.shared.restore()
     }
 }
@@ -69,6 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 )
                 .onAppear {
                     DesktopOverlayManager.shared.start(with: music)
+                    NotchOverlayManager.shared.start(with: music)
                 }
                 .onOpenURL { url in
                     music.handleURL(url)

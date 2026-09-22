@@ -806,5 +806,40 @@ public struct L10n {
     public static var readyToInstallDesc: String {
         current == .ru ? "Обновление успешно загружено и готово к установке." : "Update successfully downloaded and ready to install."
     }
+    
+    // MARK: - Notch Glow & Dynamic Island HUD
+    public static var notchSectionTitle: String {
+        current == .ru ? "ВЫРЕЗ ЭКРАНА И DYNAMIC ISLAND" : "SCREEN NOTCH & DYNAMIC ISLAND"
+    }
+    public static var notchGlowToggle: String {
+        current == .ru ? "Свечение вокруг выреза" : "Screen Notch Glow"
+    }
+    public static var notchGlowSub: String {
+        current == .ru ? "Атмосферный ореол, эквалайзер и Dynamic Island вокруг выреза MacBook" : "Ambient halo, visualizer and Dynamic Island around MacBook notch"
+    }
+    public static var notchModeLabel: String {
+        current == .ru ? "Режим отображения" : "Display Mode"
+    }
+    public static var notchRadiusLabel: String {
+        current == .ru ? "Радиус ореола" : "Glow Radius"
+    }
+    public static var notchHUDOnTrackChangeToggle: String {
+        current == .ru ? "Показывать при смене трека" : "Reveal on track change"
+    }
+    public static var notchHUDOnTrackChangeSub: String {
+        current == .ru ? "Кратковременно раскрывает компактный HUD с обложкой при переключении песни" : "Briefly expands compact HUD with artwork when track changes"
+    }
+    public static var notchIslandHoverHint: String {
+        current == .ru ? "Наведите на вырез для плеера" : "Hover over notch for player"
+    }
+    public static var effectNebulaDesc: String {
+        current == .ru ? "Органические светящиеся флюиды, пульсирующие в такт басам." : "Organic glowing fluids undulating with rhythmic bass."
+    }
+    public static var effectCyberGridDesc: String {
+        current == .ru ? "Ретро-футуристическая 3D-сетка с бегущими неоновыми линиями." : "Retro-futuristic 3D horizon grid with pulsing perspective lines."
+    }
+    public static var effectSupernovaDesc: String {
+        current == .ru ? "Взрыв космических звездных частиц при каждом ударе бочки." : "Burst of cosmic stellar particles on every kick impact."
+    }
 }
 

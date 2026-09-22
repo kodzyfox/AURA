@@ -695,6 +695,22 @@ extension NSScreen {
                 drawCenterTrackText(context: context, size: size, coverRect: coverRect, trackInfo: info)
             }
             
+        case .nebula, .cyberGrid, .supernova:
+            drawAuraEffect(
+                context: context,
+                centerX: centerX,
+                centerY: centerY,
+                coverRect: coverRect,
+                artwork: artwork,
+                intensity: intensity,
+                glowScale: glowScale,
+                tint: tint,
+                colorSpace: colorSpace
+            )
+            if let info = trackInfo, !shouldShowPlayer, settings.showInfo {
+                drawCenterTrackText(context: context, size: size, coverRect: coverRect, trackInfo: info)
+            }
+            
         case .minimal:
             drawStandardSquareCover(context: context, coverRect: coverRect, artwork: artwork)
             if let info = trackInfo, !shouldShowPlayer, settings.showInfo {

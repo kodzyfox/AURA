@@ -246,6 +246,30 @@ struct DesktopAmbientOverlayView: View {
                                     .scaleEffect(1.0 + (music.settings.audioReactive ? beatImpact * 0.15 : 0.0))
                                     .blendMode(.screen)
                                     
+                                case .nebula:
+                                    let glowCol = music.settings.edgeGlowColor(artworkColor: music.artworkColor)
+                                    Circle()
+                                        .stroke(glowCol.opacity(0.6 * music.settings.intensity), lineWidth: max(4.0, 10.0 * CGFloat(beatImpact)))
+                                        .frame(width: coverDim * 1.3, height: coverDim * 1.3)
+                                        .blur(radius: 16)
+                                        .scaleEffect(1.0 + CGFloat(beatImpact * 0.15))
+                                        .blendMode(.screen)
+                                        
+                                case .cyberGrid:
+                                    let glowCol = music.settings.edgeGlowColor(artworkColor: music.artworkColor)
+                                    Rectangle()
+                                        .fill(LinearGradient(colors: [.clear, glowCol.opacity(0.7 * music.settings.intensity), .clear], startPoint: .leading, endPoint: .trailing))
+                                        .frame(width: coverDim * 1.8, height: 3.0 + CGFloat(beatImpact * 4.0))
+                                        .offset(y: coverDim * 0.45)
+                                        .blur(radius: 3)
+                                        
+                                case .supernova:
+                                    let glowCol = music.settings.edgeGlowColor(artworkColor: music.artworkColor)
+                                    Circle()
+                                        .stroke(glowCol.opacity((0.3 + beatImpact * 0.6) * music.settings.intensity), lineWidth: 2.0 + CGFloat(beatImpact * 3.0))
+                                        .frame(width: coverDim * (1.3 + CGFloat(beatImpact * 0.4)), height: coverDim * (1.3 + CGFloat(beatImpact * 0.4)))
+                                        .blur(radius: 4)
+                                        
                                 case .vinyl, .minimal:
                                     EmptyView()
                                 }

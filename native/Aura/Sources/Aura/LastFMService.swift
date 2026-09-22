@@ -727,7 +727,7 @@ struct PendingScrobble: Codable, Identifiable, Equatable {
     
     // MARK: - Вспомогательные методы подписи API
     
-    private func createSignature(params: [String: String]) -> String {
+    func createSignature(params: [String: String]) -> String {
         let sortedKeys = params.keys.filter { $0 != "format" && $0 != "callback" }.sorted()
         var signatureBase = ""
         for key in sortedKeys {

@@ -605,7 +605,7 @@ struct LastFMView: View {
                                 .foregroundStyle(Theme.textSecondary)
                                 .frame(width: 95, alignment: .leading)
                             
-                            TextField("32-значный API Key", text: $lastfm.apiKey)
+                            TextField(L10n.current == .ru ? "32-значный API Key" : "32-character API Key", text: $lastfm.apiKey)
                                 .textFieldStyle(.roundedBorder)
                                 .font(.system(size: 11).monospaced())
                             
@@ -623,7 +623,7 @@ struct LastFMView: View {
                                 .foregroundStyle(Theme.textSecondary)
                                 .frame(width: 95, alignment: .leading)
                             
-                            SecureField("32-значный Shared Secret", text: $lastfm.apiSecret)
+                            SecureField(L10n.current == .ru ? "32-значный Shared Secret" : "32-character Shared Secret", text: $lastfm.apiSecret)
                                 .textFieldStyle(.roundedBorder)
                                 .font(.system(size: 11).monospaced())
                             

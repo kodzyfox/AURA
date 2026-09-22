@@ -92,7 +92,7 @@ struct AtmosphereView: View {
                         Spacer()
                         
                         HStack {
-                            Text(music.playing ? "●  Погрузитесь в музыку" : "●  Время остановиться")
+                            Text(music.playing ? (L10n.current == .ru ? "●  Погрузитесь в музыку" : "●  Immerse in the music") : (L10n.current == .ru ? "●  Время остановиться" : "●  Time to pause"))
                                 .font(.system(size: 10, weight: .medium))
                             Spacer()
                         }

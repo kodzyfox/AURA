@@ -165,7 +165,7 @@ public actor PlayerAutomationService {
                     throw PlayerAutomationError.invalidResponse
                 }
                 
-                let title = result.atIndex(1)?.stringValue ?? "Неизвестный трек"
+                let title = result.atIndex(1)?.stringValue ?? (L10n.current == .ru ? "Неизвестный трек" : "Unknown Track")
                 let artist = result.atIndex(2)?.stringValue ?? appName
                 let rawDuration = result.atIndex(3)?.doubleValue ?? 0
                 let duration = isSpotify ? (rawDuration / 1000.0) : rawDuration

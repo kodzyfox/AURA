@@ -577,7 +577,7 @@ import SwiftUI
             }
         } catch {
             playing = false
-            message = "Не удалось открыть \(item.url.lastPathComponent). \(error.localizedDescription)"
+            message = L10n.current == .ru ? "Не удалось открыть \(item.url.lastPathComponent). \(error.localizedDescription)" : "Failed to open \(item.url.lastPathComponent). \(error.localizedDescription)"
             AppNotificationManager.shared.show(
                 type: .error,
                 title: L10n.current == .ru ? "Ошибка воспроизведения" : "Playback Error",
@@ -713,12 +713,12 @@ import SwiftUI
                 position = min(position + 1, duration)
                 if position >= duration { skip(1) }
             }
-            activePlayerName = "Деморежим"
+            activePlayerName = L10n.current == .ru ? "Деморежим" : "Demo Mode"
             return
         }
 
         if source == .local {
-            activePlayerName = "Локальный файл"
+            activePlayerName = L10n.current == .ru ? "Локальный файл" : "Local File"
             position = localPlaybackService.currentTime
             if playing && !localPlaybackService.isPlaying {
                 playing = false
@@ -830,7 +830,7 @@ import SwiftUI
         case .failure(let error):
             if case .permissionDenied = error {
                 blocked = true
-                message = "Разрешите Aura управлять плеерами: Системные настройки → Конфиденциальность и безопасность → Автоматизация."
+                message = L10n.current == .ru ? "Разрешите Aura управлять плеерами: Системные настройки → Конфиденциальность и безопасность → Автоматизация." : "Allow Aura to control players: System Settings → Privacy & Security → Automation."
                 AppNotificationManager.shared.show(
                     type: .warning,
                     title: L10n.current == .ru ? "Доступ заблокирован" : "Access Denied",

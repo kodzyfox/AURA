@@ -206,7 +206,7 @@ struct PendingScrobble: Codable, Identifiable, Equatable {
     
     func startAuthorization() async {
         guard hasValidCredentials else {
-            authError = "Сначала укажите API Key и Shared Secret (Шаг 1 и 2)"
+            authError = L10n.current == .ru ? "Сначала укажите API Key и Shared Secret (Шаг 1 и 2)" : "Enter API Key and Shared Secret first (Steps 1 & 2)"
             return
         }
         
@@ -221,7 +221,7 @@ struct PendingScrobble: Codable, Identifiable, Equatable {
         ]
         
         guard let url = components.url else {
-            authError = "Некорректный URL"
+            authError = L10n.current == .ru ? "Некорректный URL" : "Invalid URL"
             isAuthenticating = false
             return
         }
@@ -236,18 +236,18 @@ struct PendingScrobble: Codable, Identifiable, Equatable {
                 let authWebURL = URL(string: "https://www.last.fm/api/auth/?api_key=\(apiKey)&token=\(token)")!
                 NSWorkspace.shared.open(authWebURL)
             } else {
-                authError = "Не удалось получить токен авторизации от Last.fm"
+                authError = L10n.current == .ru ? "Не удалось получить токен авторизации от Last.fm" : "Failed to obtain auth token from Last.fm"
                 isAuthenticating = false
             }
         } catch {
-            authError = "Ошибка подключения: \(error.localizedDescription)"
+            authError = (L10n.current == .ru ? "Ошибка подключения: " : "Connection error: ") + error.localizedDescription
             isAuthenticating = false
         }
     }
     
     func completeAuthorization() async {
         guard let token = pendingToken else {
-            authError = "Сначала нажмите «Войти через Last.fm»"
+            authError = L10n.current == .ru ? "Сначала нажмите «Войти через Last.fm»" : "Click 'Log in with Last.fm' first"
             return
         }
         
@@ -266,7 +266,7 @@ struct PendingScrobble: Codable, Identifiable, Equatable {
         postParams["format"] = "json"
         
         guard let body = urlEncode(postParams) else {
-            authError = "Ошибка подготовки параметров"
+            authError = L10n.current == .ru ? "Ошибка подготовки параметров" : "Failed to prepare request parameters"
             isAuthenticating = false
             return
         }
@@ -291,7 +291,7 @@ struct PendingScrobble: Codable, Identifiable, Equatable {
                     self.authError = errorMsg
                     self.isAuthenticating = false
                 } else {
-                    self.authError = "Авторизация не подтверждена на сайте Last.fm"
+                    self.authError = L10n.current == .ru ? "Авторизация не подтверждена на сайте Last.fm" : "Authorization was not confirmed on Last.fm"
                     self.isAuthenticating = false
                 }
             }
@@ -358,7 +358,7 @@ struct PendingScrobble: Codable, Identifiable, Equatable {
                       let error = json["error"] as? Int {
                 print("[LastFM] Now Playing error \(error): \(json["message"] as? String ?? "")")
                 if error == 9 {
-                    self.authError = "Сессия Last.fm устарела. Авторизуйтесь снова."
+                    self.authError = L10n.current == .ru ? "Сессия Last.fm устарела. Авторизуйтесь снова." : "Last.fm session expired. Please log in again."
                     self.sessionKey = nil
                     self.isConnected = false
                 }
@@ -480,7 +480,7 @@ struct PendingScrobble: Codable, Identifiable, Equatable {
                         print("[LastFM] API Error \(error): \(errorMsg)")
                         
                         if error == 9 {
-                            self.authError = "Сессия Last.fm устарела. Авторизуйтесь снова."
+                            self.authError = L10n.current == .ru ? "Сессия Last.fm устарела. Авторизуйтесь снова." : "Last.fm session expired. Please log in again."
                             self.sessionKey = nil
                             self.isConnected = false
                             break

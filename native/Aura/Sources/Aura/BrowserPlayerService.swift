@@ -147,7 +147,7 @@ actor BrowserPlayerService {
 
         // Яндекс Музыка показывает «Пауза» в заголовке когда пауза: игнорируем такие страницы
         // (заголовок без разделителя - просто «Слушать музыку онлайн — Яндекс Музыка»)
-        let appDisplayName = source == .youtubeMusic ? "YouTube Music" : "Яндекс Музыка"
+        let appDisplayName = source == .youtubeMusic ? "YouTube Music" : (L10n.current == .ru ? "Яндекс Музыка" : "Yandex Music")
 
         return PlayerSnapshot(
             title: trackName,

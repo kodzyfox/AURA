@@ -123,7 +123,7 @@ struct SidebarView: View {
                     .toggleStyle(.switch)
                     .controlSize(.mini)
                     .padding(.horizontal, 14)
-                    .help("Автоматически ставить обложку текущего трека на обои и экран блокировки Mac")
+                    .help(L10n.current == .ru ? "Автоматически ставить обложку текущего трека на обои и экран блокировки Mac" : "Automatically set current track artwork as desktop and lock screen wallpaper")
                     
                     if music.dynamicWallpaperEnabled {
                         Picker(L10n.wallpaperStyle, selection: $music.wallpaperStyle) {
@@ -152,7 +152,7 @@ struct SidebarView: View {
                     .buttonStyle(.plain)
                     .padding(.horizontal, 14)
                     .padding(.top, 2)
-                    .help("Полноэкранный плеер в стиле Lock Screen (Control+Command+F)")
+                    .help(L10n.current == .ru ? "Полноэкранный плеер в стиле Lock Screen (Control+Command+F)" : "Fullscreen Lock Screen style player (Control+Command+F)")
                     
                     // Переход в мини-плеер из сайдбара
                     Button {
@@ -167,7 +167,7 @@ struct SidebarView: View {
                     .buttonStyle(.plain)
                     .padding(.horizontal, 14)
                     .padding(.bottom, 4)
-                    .help("Компактный режим Always on Top (Cmd+Shift+M)")
+                    .help(L10n.current == .ru ? "Компактный режим Always on Top (Cmd+Shift+M)" : "Compact Always on Top mode (Cmd+Shift+M)")
                     
                     Divider().padding(.vertical, 8)
                     

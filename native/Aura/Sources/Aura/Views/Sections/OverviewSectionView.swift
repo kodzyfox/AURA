@@ -876,17 +876,17 @@ struct OverviewSectionView: View {
                         Toggle(L10n.playerOnLockscreen, isOn: $music.settings.showPlayerOnLockScreen)
                             .toggleStyle(.switch)
                             .controlSize(.mini)
-                            .help("Виджет на экране блокировки Mac")
+                            .help(L10n.current == .ru ? "Виджет на экране блокировки Mac" : "Mac Lock Screen widget")
                         
                         Toggle(L10n.playerOnDesktop, isOn: $music.settings.showPlayerOnDesktop)
                             .toggleStyle(.switch)
                             .controlSize(.mini)
-                            .help("Виджет на рабочем столе")
+                            .help(L10n.current == .ru ? "Виджет на рабочем столе" : "Desktop widget")
                         
                         Toggle(L10n.animatedDesktopCover, isOn: $music.settings.animatedDesktopCover)
                             .toggleStyle(.switch)
                             .controlSize(.mini)
-                            .help("Desktop Animated Cover")
+                            .help(L10n.current == .ru ? "Анимированная обложка на рабочем столе" : "Animated desktop cover")
                     }
                     
                     // Выбор стиля пульсации обложки

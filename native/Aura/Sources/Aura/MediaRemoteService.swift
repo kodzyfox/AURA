@@ -140,7 +140,7 @@ final class MediaRemoteService: @unchecked Sendable {
                     ?? "\(appName)_\(title)_\(artist)"
 
                 let snapshot = PlayerSnapshot(
-                    title: title.isEmpty ? "Неизвестный трек" : title,
+                    title: title.isEmpty ? (L10n.current == .ru ? "Неизвестный трек" : "Unknown Track") : title,
                     artist: artist.isEmpty ? appName : artist,
                     duration: duration,
                     position: position,

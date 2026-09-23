@@ -99,10 +99,12 @@ struct NotchGlowView: View {
             ZStack(alignment: .top) {
                 // 1. Неоновый ореол свечения (Halo)
                 ambientHaloLayer(glowColor: glowColor, beatImpact: beatImpact, t: t)
+                    .allowsHitTesting(false)
                 
                 // 2. Аудио-крылья эквалайзера по бокам от челки (если выбран соответствующий режим)
                 if music.settings.notchGlowMode == .audioWings || (music.settings.notchGlowMode == .dynamicIsland && !isExpanded) {
                     audioWingsLayer(glowColor: glowColor, beatImpact: beatImpact, currentPos: currentPos, t: t)
+                        .allowsHitTesting(false)
                 }
                 
                 // 3. Вырез / Капсула Dynamic Island
@@ -111,6 +113,7 @@ struct NotchGlowView: View {
                 } else if !notch.hasPhysicalNotch {
                     // На экранах без физической челки показываем аккуратную темную капсулу-островок
                     standardVirtualPill(glowColor: glowColor, beatImpact: beatImpact)
+                        .allowsHitTesting(false)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -252,26 +255,45 @@ struct NotchGlowView: View {
     // MARK: - 3. Интерактивная капсула Dynamic Island
     @ViewBuilder
     private func dynamicIslandHUD(glowColor: Color, beatImpact: Double, currentPos: Double, t: Double) -> some View {
-        ZStack(alignment: .top) {
-            if isExpanded {
-                // Раскрытый режим: карточка мини-плеера прямо под челкой
-                expandedHUDCard(glowColor: glowColor, currentPos: currentPos)
-                    .position(x: notch.centerX, y: notch.height + 34.0)
+        let containerWidth: CGFloat = isExpanded ? max(420.0, notch.width + 40.0) : (notch.width + 36.0)
+        let containerHeight: CGFloat = isExpanded ? (notch.height + 76.0) : (notch.height + 12.0)
+        let leadingOffset = max(0, notch.centerX - (containerWidth / 2.0))
+        
+        HStack(spacing: 0) {
+            Color.clear
+                .frame(width: leadingOffset, height: 1)
+                .allowsHitTesting(false)
+            
+            ZStack(alignment: .top) {
+                if isExpanded {
+                    VStack(spacing: 4) {
+                        // Чувствительная зона самой челки вверху
+                        Color.clear
+                            .frame(height: notch.height)
+                        
+                        // Раскрытый плеер
+                        expandedHUDCard(glowColor: glowColor, currentPos: currentPos)
+                    }
                     .transition(.asymmetric(
-                        insertion: .scale(scale: 0.88, anchor: .top).combined(with: .opacity),
-                        removal: .scale(scale: 0.88, anchor: .top).combined(with: .opacity)
+                        insertion: .scale(scale: 0.90, anchor: .top).combined(with: .opacity),
+                        removal: .scale(scale: 0.90, anchor: .top).combined(with: .opacity)
                     ))
-            } else {
-                // Свернутый режим: компактный элемент под челкой с визуальным индикатором
-                collapsedNotchCapsule(glowColor: glowColor, beatImpact: beatImpact)
-                    .position(x: notch.centerX, y: notch.height / 2.0)
-                    .transition(.opacity)
+                } else {
+                    collapsedNotchCapsule(glowColor: glowColor, beatImpact: beatImpact)
+                        .frame(width: notch.width + 36.0, height: notch.height + 12.0, alignment: .top)
+                        .transition(.opacity)
+                }
             }
+            .frame(width: containerWidth, height: containerHeight, alignment: .top)
+            .contentShape(Rectangle())
+            .onHover { hovering in
+                onHoverChanged?(hovering)
+            }
+            
+            Spacer(minLength: 0)
+                .allowsHitTesting(false)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .onHover { hovering in
-            onHoverChanged?(hovering)
-        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
     
     // Свернутая капсула выреза

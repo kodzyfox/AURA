@@ -76,4 +76,37 @@ final class NotchGeometryHelperTests: XCTestCase {
         // Центр по x должен быть ровно 756
         XCTAssertEqual(bounds.midX, 756, accuracy: 0.5)
     }
+    
+    func testNotchHoverAreaDoesNotTriggerAtTopScreenEdges() {
+        let notch = NotchInfo(
+            hasPhysicalNotch: true,
+            screenFrame: CGRect(x: 0, y: 0, width: 1728, height: 1117),
+            notchRectInScreen: CGRect(x: 774, y: 1083, width: 180, height: 34),
+            centerX: 864,
+            width: 180,
+            height: 34,
+            cornerRadius: 10.0
+        )
+        
+        // 1. Точка у левого края экрана (Apple меню / меню приложений: x = 50, y = 1110)
+        let leftEdgePoint = CGPoint(x: 50, y: 1110)
+        XCTAssertFalse(notch.isPointInNotchOrHUD(screenPoint: leftEdgePoint, isExpanded: false))
+        XCTAssertFalse(notch.isPointInNotchOrHUD(screenPoint: leftEdgePoint, isExpanded: true))
+        
+        // 2. Точка у правого края экрана (Часы / Менюбар Control Center: x = 1680, y = 1110)
+        let rightEdgePoint = CGPoint(x: 1680, y: 1110)
+        XCTAssertFalse(notch.isPointInNotchOrHUD(screenPoint: rightEdgePoint, isExpanded: false))
+        XCTAssertFalse(notch.isPointInNotchOrHUD(screenPoint: rightEdgePoint, isExpanded: true))
+        
+        // 3. Точка прямо по центру челки (x = 864, y = 1100, т.е. 17pt от верха) -> должна активировать!
+        let notchCenterPoint = CGPoint(x: 864, y: 1100)
+        XCTAssertTrue(notch.isPointInNotchOrHUD(screenPoint: notchCenterPoint, isExpanded: false))
+        XCTAssertTrue(notch.isPointInNotchOrHUD(screenPoint: notchCenterPoint, isExpanded: true))
+        
+        // 4. Точка ниже челки (x = 864, y = 1050, т.е. 67pt от верха)
+        // В свернутом режиме НЕ должна активировать, а в развернутом карточка HUD доходит до 119pt -> должна!
+        let belowNotchPoint = CGPoint(x: 864, y: 1050)
+        XCTAssertFalse(notch.isPointInNotchOrHUD(screenPoint: belowNotchPoint, isExpanded: false))
+        XCTAssertTrue(notch.isPointInNotchOrHUD(screenPoint: belowNotchPoint, isExpanded: true))
+    }
 }

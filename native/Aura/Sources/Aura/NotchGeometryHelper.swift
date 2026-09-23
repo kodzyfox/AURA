@@ -22,6 +22,20 @@ public struct NotchInfo: Sendable, Equatable {
             height: height
         )
     }
+    
+    /// Проверяет, попадает ли глобальная точка экрана (NSEvent.mouseLocation) в зону челки или развернутого HUD
+    public func isPointInNotchOrHUD(screenPoint: CGPoint, isExpanded: Bool) -> Bool {
+        let localX = screenPoint.x - screenFrame.minX
+        let localYFromTop = screenFrame.maxY - screenPoint.y
+        return isLocalPointInNotchOrHUD(localPoint: CGPoint(x: localX, y: localYFromTop), isExpanded: isExpanded)
+    }
+    
+    /// Проверяет, попадает ли локальная точка окна (где (0,0) - верхний левый угол экрана) в зону челки или развернутого HUD
+    public func isLocalPointInNotchOrHUD(localPoint: CGPoint, isExpanded: Bool) -> Bool {
+        let halfWidth: CGFloat = isExpanded ? max(220.0, (width / 2.0) + 20.0) : ((width / 2.0) + 18.0)
+        let maxHeight: CGFloat = isExpanded ? (height + 85.0) : (height + 12.0)
+        return abs(localPoint.x - centerX) <= halfWidth && localPoint.y >= 0 && localPoint.y <= maxHeight
+    }
 }
 
 public enum NotchGeometryHelper {

@@ -128,6 +128,7 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
         newWindow.hasShadow = false
         newWindow.isExcludedFromWindowsMenu = true
         newWindow.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary]
+        newWindow.acceptsMouseMovedEvents = true
         
         let contentView = NotchGlowViewWrapper(
             music: music,
@@ -144,8 +145,8 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
             guard let self = self, let view = hostingView else { return .zero }
             let centerX = notch.centerX
             let isExp = self.isHovered || self.isTemporarilyExpanded
-            let width: CGFloat = isExp ? 420.0 : (notch.width + 40.0)
-            let height: CGFloat = isExp ? 84.0 : (notch.height + 20.0)
+            let width: CGFloat = isExp ? max(420.0, notch.width + 40.0) : (notch.width + 36.0)
+            let height: CGFloat = isExp ? (notch.height + 76.0) : (notch.height + 12.0)
             
             // В AppKit (0,0) внизу вью, поэтому верхний край равен view.bounds.height
             let y = view.bounds.height - height
@@ -158,9 +159,56 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
         self.window = newWindow
     }
     
+    private var hoverDismissTimer: Timer?
+    
+    func setHovered(_ hovered: Bool, notch: NotchInfo) {
+        hoverDismissTimer?.invalidate()
+        hoverDismissTimer = nil
+        
+        if hovered {
+            // Проверяем, что курсор ДЕЙСТВИТЕЛЬНО находится в зоне челки,
+            // а не где-либо в стороне у верхней кромки экрана
+            let mouseLoc = NSEvent.mouseLocation
+            guard notch.isPointInNotchOrHUD(screenPoint: mouseLoc, isExpanded: isHovered || isTemporarilyExpanded) else {
+                return
+            }
+            
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                self.isHovered = true
+            }
+            
+            // Периодический таймер-сторож: моментально закрывает HUD,
+            // если курсор мыши быстро покинул зону островка
+            hoverDismissTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] timer in
+                Task { @MainActor in
+                    guard let self = self else {
+                        timer.invalidate()
+                        return
+                    }
+                    guard let screen = NotchGeometryHelper.activeNotchScreen() else { return }
+                    let currentNotch = NotchGeometryHelper.notchInfo(for: screen)
+                    let currentMouse = NSEvent.mouseLocation
+                    if !currentNotch.isPointInNotchOrHUD(screenPoint: currentMouse, isExpanded: true) {
+                        timer.invalidate()
+                        self.hoverDismissTimer = nil
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            self.isHovered = false
+                        }
+                    }
+                }
+            }
+        } else {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                self.isHovered = false
+            }
+        }
+    }
+    
     func closeAll() {
         trackChangeTimer?.invalidate()
         trackChangeTimer = nil
+        hoverDismissTimer?.invalidate()
+        hoverDismissTimer = nil
         isTemporarilyExpanded = false
         isHovered = false
         window?.orderOut(nil)
@@ -181,9 +229,7 @@ private struct NotchGlowViewWrapper: View {
             isHovered: manager.isHovered,
             isTemporarilyExpanded: manager.isTemporarilyExpanded,
             onHoverChanged: { hovering in
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                    manager.isHovered = hovering
-                }
+                manager.setHovered(hovering, notch: notch)
             }
         )
     }

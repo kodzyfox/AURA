@@ -850,12 +850,10 @@ struct OverviewSectionView: View {
                                         .tint(Theme.accent)
                                 }
                                 
-                                if music.settings.notchGlowMode == .dynamicIsland {
-                                    Toggle(L10n.notchHUDOnTrackChangeToggle, isOn: $music.settings.notchHUDOnTrackChange)
-                                        .font(.system(size: 10.5))
-                                        .toggleStyle(.switch)
-                                        .controlSize(.mini)
-                                }
+                                Toggle(L10n.notchHUDOnTrackChangeToggle, isOn: $music.settings.notchHUDOnTrackChange)
+                                    .font(.system(size: 10.5))
+                                    .toggleStyle(.switch)
+                                    .controlSize(.mini)
                             }
                             .padding(10)
                             .background(Color.white.opacity(0.03), in: RoundedRectangle(cornerRadius: 8))

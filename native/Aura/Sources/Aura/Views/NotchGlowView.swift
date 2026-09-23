@@ -81,7 +81,7 @@ struct NotchGlowView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     private var isExpanded: Bool {
-        music.settings.notchGlowMode == .dynamicIsland && (isHovered || isTemporarilyExpanded)
+        isHovered || isTemporarilyExpanded
     }
     
     var body: some View {
@@ -102,19 +102,13 @@ struct NotchGlowView: View {
                     .allowsHitTesting(false)
                 
                 // 2. Аудио-крылья эквалайзера по бокам от челки (если выбран соответствующий режим)
-                if music.settings.notchGlowMode == .audioWings || (music.settings.notchGlowMode == .dynamicIsland && !isExpanded) {
+                if (music.settings.notchGlowMode == .audioWings || music.settings.notchGlowMode == .dynamicIsland) && !isExpanded {
                     audioWingsLayer(glowColor: glowColor, beatImpact: beatImpact, currentPos: currentPos, t: t)
                         .allowsHitTesting(false)
                 }
                 
-                // 3. Вырез / Капсула Dynamic Island
-                if music.settings.notchGlowMode == .dynamicIsland {
-                    dynamicIslandHUD(glowColor: glowColor, beatImpact: beatImpact, currentPos: currentPos, t: t)
-                } else if !notch.hasPhysicalNotch {
-                    // На экранах без физической челки показываем аккуратную темную капсулу-островок
-                    standardVirtualPill(glowColor: glowColor, beatImpact: beatImpact)
-                        .allowsHitTesting(false)
-                }
+                // 3. Вырез / Капсула Dynamic Island / Интерактивный HUD
+                dynamicIslandHUD(glowColor: glowColor, beatImpact: beatImpact, currentPos: currentPos, t: t)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
@@ -278,10 +272,19 @@ struct NotchGlowView: View {
                         insertion: .scale(scale: 0.90, anchor: .top).combined(with: .opacity),
                         removal: .scale(scale: 0.90, anchor: .top).combined(with: .opacity)
                     ))
-                } else {
+                } else if music.settings.notchGlowMode == .dynamicIsland {
                     collapsedNotchCapsule(glowColor: glowColor, beatImpact: beatImpact)
                         .frame(width: notch.width + 36.0, height: notch.height + 12.0, alignment: .top)
                         .transition(.opacity)
+                } else {
+                    // Режимы Ореол и Крылья в свернутом состоянии
+                    if !notch.hasPhysicalNotch {
+                        standardVirtualPill(glowColor: glowColor, beatImpact: beatImpact)
+                            .allowsHitTesting(false)
+                    }
+                    Color.clear
+                        .frame(width: notch.width + 36.0, height: notch.height + 12.0, alignment: .top)
+                        .contentShape(Rectangle())
                 }
             }
             .frame(width: containerWidth, height: containerHeight, alignment: .top)

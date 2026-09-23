@@ -149,26 +149,32 @@ struct AtmosphereView: View {
         )
         
         ZStack {
-            // 1. Полноразмерный кинематографичный артворк
+            // 1. Полноразмерный кинематографичный артворк на весь фон
             AlbumImage(image: music.artwork ?? music.fallback)
                 .scaledToFill()
                 .frame(width: geo.size.width, height: geo.size.height)
                 .blur(radius: music.settings.blurRadius)
-                .scaleEffect(1.04 + (coverScale - 1.0) * 0.35)
+                .scaleEffect(1.08)
                 .clipped()
             
-            // 2. Палитра наложения с деликатным смешиванием
+            // 2. Палитра наложения с деликатным затемнением для читаемости
             paletteOverlay(geo: geo)
-                .opacity(0.40)
+                .opacity(0.35)
             
-            // 3. Радиальный мягкий свет в тон обложки
-            RadialGradient(
-                colors: [activeGlowColor.opacity(dynamicGlow * 0.35), .clear],
-                center: .center,
-                startRadius: 20,
-                endRadius: max(geo.size.width, geo.size.height) * 0.65
-            )
-            .blendMode(.screen)
+            // 3. Атмосферный визуальный эффект из «Выберите настроение» на весь экран
+            if music.settings.effect != .minimal {
+                let glowRadius = geo.size.width * 0.55 * music.settings.glowScale * (1.0 + (isReactive ? beatImpact * 0.15 : 0.0))
+                RadialGradient(
+                    colors: [activeGlowColor.opacity(dynamicGlow * 0.60), .clear],
+                    center: .center,
+                    startRadius: 10,
+                    endRadius: max(50, glowRadius)
+                )
+                .blendMode(.screen)
+                
+                backgroundAtmosphereEffect(t: t, geo: geo, beatImpact: beatImpact)
+                    .opacity(0.85)
+            }
             
             // 4. Затемняющие градиенты сверху и снизу для идеальной читаемости
             VStack {
@@ -182,14 +188,14 @@ struct AtmosphereView: View {
                 Spacer()
                 
                 LinearGradient(
-                    colors: [Color.clear, Color.black.opacity(0.85)],
+                    colors: [Color.clear, Color.black.opacity(0.70)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .frame(height: 125)
+                .frame(height: 80)
             }
             
-            // 5. Верхняя статусная панель
+            // 5. Верхняя статусная панель и нижняя плашка с миниатюрой обложки (Скриншот 1)
             VStack {
                 HStack(alignment: .center) {
                     HStack(spacing: 6) {
@@ -226,26 +232,25 @@ struct AtmosphereView: View {
                             .background(Theme.green.opacity(0.15), in: Capsule())
                         }
                         
-                        Text(L10n.current == .ru ? "НА ВЕСЬ ЭКРАН" : "FILL SCREEN")
+                        Text(music.settings.effect.localizedName.uppercased())
                             .font(.system(size: 8, weight: .bold))
-                            .tracking(1.8)
+                            .tracking(2)
                             .foregroundStyle(.white.opacity(0.85))
                     }
                 }
-                .padding(20)
-                .foregroundStyle(.white.opacity(0.75))
                 
                 Spacer()
                 
-                // Нижний информационный блок (HUD во весь экран)
+                // Нижняя панель: плавающая миниатюра обложки трека и эквалайзер (Скриншот 1)
                 if music.settings.showInfo {
-                    HStack(alignment: .center, spacing: 14) {
+                    HStack(spacing: 12) {
+                        // Квадратная плавающая мини-обложка в нижнем левом углу
                         AlbumImage(image: music.artwork ?? music.fallback)
                             .frame(width: 48, height: 48)
                             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .strokeBorder(.white.opacity(0.22), lineWidth: 1)
+                                    .strokeBorder(.white.opacity(0.20), lineWidth: 1)
                             )
                             .shadow(color: .black.opacity(0.55), radius: 10, y: 4)
                             .scaleEffect(coverScale)
@@ -303,7 +308,44 @@ struct AtmosphereView: View {
                     .padding(.bottom, 16)
                 }
             }
+            .padding(20)
+            .foregroundStyle(.white.opacity(0.75))
         }
+    }
+    
+    // Фоновая атмосфера для режима «На весь экран»
+    @ViewBuilder
+    private func backgroundAtmosphereEffect(t: Double, geo: GeometryProxy, beatImpact: Double) -> some View {
+        let size = max(geo.size.width, geo.size.height) * 0.75
+        ZStack {
+            switch music.settings.effect {
+            case .neonPulse:
+                neonPulseView(t: t, size: size * 0.45, beatImpact: beatImpact)
+            case .orbit:
+                orbitView(t: t, size: size * 0.55)
+            case .waves:
+                wavesView(t: t, size: size * 0.65)
+            case .prism:
+                prismView(t: t, size: size * 0.5)
+            case .aurora:
+                auroraView(t: t, size: size * 0.75)
+            case .cosmicBreath:
+                cosmicBreathView(t: t, size: size * 0.55)
+            case .aura:
+                auraGlowView(t: t, size: size * 0.55, beatImpact: beatImpact)
+            case .nebula:
+                nebulaView(t: t, size: size * 0.55, beatImpact: beatImpact)
+            case .cyberGrid:
+                cyberGridView(t: t, size: size * 0.65, beatImpact: beatImpact)
+            case .supernova:
+                supernovaView(t: t, size: size * 0.55, beatImpact: beatImpact)
+            case .vinyl, .minimal:
+                EmptyView()
+            }
+        }
+        .allowsHitTesting(false)
+        .blur(radius: 12)
+        .blendMode(.screen)
     }
     
     // MARK: - Режим 3: «Минимализм» (Minimalism)

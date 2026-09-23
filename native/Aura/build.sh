@@ -16,9 +16,11 @@ echo "==> Building Aura for macOS (release)..."
 swift build -c release
 BIN_DIR="$(swift build -c release --show-bin-path)"
 
-APP="dist/Aura.app"
-rm -rf "$APP"
+DIST_DIR="dist.noindex"
+APP="$DIST_DIR/Aura.app"
+rm -rf "$DIST_DIR" dist
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+ln -sfn "$DIST_DIR" dist
 
 echo "==> Packaging Aura.app bundle..."
 cp "$BIN_DIR/Aura" "$APP/Contents/MacOS/Aura"

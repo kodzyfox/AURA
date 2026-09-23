@@ -16,8 +16,14 @@ DerivedData/
 
 # Aura Build & Distribution Artifacts
 native/Aura/.build/
+native/Aura/dist
 native/Aura/dist/
+native/Aura/dist.noindex
+native/Aura/dist.noindex/
+dist
 dist/
+dist.noindex
+dist.noindex/
 *.dmg
 
 # Media & Recordings

@@ -109,12 +109,23 @@ final class AtmosphereCodableTests: XCTestCase {
         let noneScale = atmosphere.computeCoverScale(t: 10.0, beatImpact: 0.9)
         XCTAssertEqual(noneScale, 1.0)
         
-        // При beatPulse и высоком beatImpact масштаб должен увеличиваться
+        // При beatPulse и высоком beatImpact масштаб должен увеличиваться мягко, не более 10%
         atmosphere.coverAnimation = .beatPulse
         atmosphere.audioReactive = true
         atmosphere.reactiveSensitivity = 1.0
         let pulseScale = atmosphere.computeCoverScale(t: 0.0, beatImpact: 0.8)
         XCTAssertGreaterThan(pulseScale, 1.0)
-        XCTAssertLessThanOrEqual(pulseScale, 1.30)
+        XCTAssertLessThanOrEqual(pulseScale, 1.10)
+        
+        // При subtle масштаб деликатный (до +3%)
+        atmosphere.coverAnimation = .subtle
+        let subtleScale = atmosphere.computeCoverScale(t: 0.0, beatImpact: 0.8)
+        XCTAssertGreaterThan(subtleScale, 1.0)
+        XCTAssertLessThanOrEqual(subtleScale, 1.04)
+        
+        // При isPlaying == false масштаб ВСЕГДА строго 1.0 (никакой ложной пульсации на паузе)
+        atmosphere.coverAnimation = .beatPulse
+        let pausedScale = atmosphere.computeCoverScale(t: 10.0, beatImpact: 0.9, isPlaying: false)
+        XCTAssertEqual(pausedScale, 1.0)
     }
 }

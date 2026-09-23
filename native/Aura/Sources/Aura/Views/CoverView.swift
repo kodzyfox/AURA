@@ -100,7 +100,8 @@ struct CoverView: View {
                             .scaleEffect(music.settings.computeCoverScale(
                                 t: t,
                                 beatImpact: AudioAnalysisService.shared.beatImpact(at: currentPos),
-                                beatPhase: AudioAnalysisService.shared.beatPhase(at: currentPos)
+                                beatPhase: AudioAnalysisService.shared.beatPhase(at: currentPos),
+                                isPlaying: music.playing
                             ))
                         
                         // Название трека и артист по центру (в точности как на скриншоте)

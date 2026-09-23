@@ -15,90 +15,19 @@ struct AtmosphereView: View {
             let isReactive = music.settings.audioReactive && music.playing && !reduceMotion
             let beatImpact = isReactive ? AudioAnalysisService.shared.beatImpact(at: currentPos, sensitivity: music.settings.reactiveSensitivity) : 0.0
             let beatPhase = isReactive ? AudioAnalysisService.shared.beatPhase(at: currentPos) : 0.0
-            let pulseScale = 1.0 + (isReactive ? beatImpact * 0.12 : sin(t * 1.5) * 0.12)
-            let dynamicGlow = music.settings.intensity * (1.0 + (isReactive ? beatImpact * 0.35 : 0.0))
+            let pulseScale = 1.0 + (isReactive ? beatImpact * 0.035 : 0.0)
+            let dynamicGlow = music.settings.intensity * (1.0 + (isReactive ? beatImpact * 0.20 : 0.0))
             
             GeometryReader { geo in
                 ZStack {
-                    // 1. Размытый фоновый артворк
-                    AlbumImage(image: music.artwork ?? music.fallback)
-                        .blur(radius: music.settings.blurRadius)
-                        .scaleEffect(1.15 + (isReactive ? beatImpact * 0.04 : 0.0))
-                        .clipped()
-                    
-                    // 2. Палитра наложения
-                    paletteOverlay(geo: geo)
-                    
-                    // 3. Радиальное рассеянное свечение с пульсацией в такт битам
-                    if music.settings.effect != .minimal {
-                        let glowRadius = geo.size.width * 0.55 * music.settings.glowScale * (1.0 + (isReactive ? beatImpact * 0.25 : 0.0))
-                        RadialGradient(
-                            colors: [activeGlowColor.opacity(dynamicGlow * 0.65), .clear],
-                            center: .center,
-                            startRadius: 10,
-                            endRadius: max(50, glowRadius)
-                        )
-                        .scaleEffect(pulseScale)
-                        .blendMode(.screen)
+                    switch music.wallpaperStyle {
+                    case .poster:
+                        posterView(t: t, geo: geo, isReactive: isReactive, beatImpact: beatImpact, beatPhase: beatPhase, pulseScale: pulseScale, dynamicGlow: dynamicGlow, date: context.date)
+                    case .fill:
+                        fillView(t: t, geo: geo, isReactive: isReactive, beatImpact: beatImpact, beatPhase: beatPhase, dynamicGlow: dynamicGlow, date: context.date)
+                    case .center:
+                        centerMinimalView(t: t, geo: geo, isReactive: isReactive, beatImpact: beatImpact, beatPhase: beatPhase, dynamicGlow: dynamicGlow, pulseScale: pulseScale, date: context.date)
                     }
-                    
-                    // 4. Главная центрированная сцена: Обложка с выбранным эффектом строго вокруг нее
-                    centerContentScene(t: t, geo: geo, beatImpact: beatImpact, beatPhase: beatPhase)
-                    
-                    // 5. Наложение статуса и времени
-                    VStack {
-                        HStack(alignment: .center) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "sparkles")
-                                    .foregroundStyle(Theme.accent)
-                                Text("Λ U R Λ")
-                                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                                    .tracking(3.5)
-                            }
-                            
-                            Spacer()
-                            
-                            if music.settings.showClock {
-                                Text(context.date, style: .time)
-                                    .font(.system(size: 14, weight: .medium))
-                                    .monospacedDigit()
-                            }
-                            
-                            Spacer()
-                            
-                            HStack(spacing: 8) {
-                                if music.settings.audioReactive && music.playing {
-                                    HStack(spacing: 4) {
-                                        Circle()
-                                            .fill(Theme.green)
-                                            .frame(width: 5, height: 5)
-                                            .scaleEffect(1.0 + beatImpact * 0.8)
-                                        Text("\(Int(AudioAnalysisService.shared.currentBPM)) BPM")
-                                            .font(.system(size: 8, weight: .bold, design: .monospaced))
-                                            .foregroundStyle(Theme.green)
-                                    }
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 3)
-                                    .background(Theme.green.opacity(0.15), in: Capsule())
-                                }
-                                
-                                Text(music.settings.effect.localizedName.uppercased())
-                                    .font(.system(size: 8, weight: .bold))
-                                    .tracking(2)
-                                    .foregroundStyle(.white.opacity(0.85))
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        HStack {
-                            Text(music.playing ? (L10n.current == .ru ? "●  Погрузитесь в музыку" : "●  Immerse in the music") : (L10n.current == .ru ? "●  Время остановиться" : "●  Time to pause"))
-                                .font(.system(size: 10, weight: .medium))
-                            Spacer()
-                        }
-                    }
-                    .padding(20)
-                    .foregroundStyle(.white.opacity(0.75))
                 }
                 .frame(width: geo.size.width, height: geo.size.height)
                 .clipped()
@@ -106,7 +35,398 @@ struct AtmosphereView: View {
         }
     }
     
-    // MARK: - Центральная сцена с привязкой эффектов к обложке
+    // MARK: - Режим 1: «Атмосферный постер»
+    @ViewBuilder
+    private func posterView(
+        t: Double,
+        geo: GeometryProxy,
+        isReactive: Bool,
+        beatImpact: Double,
+        beatPhase: Double,
+        pulseScale: Double,
+        dynamicGlow: Double,
+        date: Date
+    ) -> some View {
+        ZStack {
+            // 1. Размытый фоновый артворк
+            AlbumImage(image: music.artwork ?? music.fallback)
+                .blur(radius: music.settings.blurRadius)
+                .scaleEffect(1.15 + (isReactive ? beatImpact * 0.02 : 0.0))
+                .clipped()
+            
+            // 2. Палитра наложения
+            paletteOverlay(geo: geo)
+            
+            // 3. Радиальное рассеянное свечение с деликатной пульсацией в такт битам
+            if music.settings.effect != .minimal {
+                let glowRadius = geo.size.width * 0.55 * music.settings.glowScale * (1.0 + (isReactive ? beatImpact * 0.15 : 0.0))
+                RadialGradient(
+                    colors: [activeGlowColor.opacity(dynamicGlow * 0.65), .clear],
+                    center: .center,
+                    startRadius: 10,
+                    endRadius: max(50, glowRadius)
+                )
+                .scaleEffect(pulseScale)
+                .blendMode(.screen)
+            }
+            
+            // 4. Главная центрированная сцена: Обложка с выбранным эффектом строго вокруг нее
+            centerContentScene(t: t, geo: geo, beatImpact: beatImpact, beatPhase: beatPhase)
+            
+            // 5. Наложение статуса и времени
+            VStack {
+                HStack(alignment: .center) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(Theme.accent)
+                        Text("Λ U R Λ")
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .tracking(3.5)
+                    }
+                    
+                    Spacer()
+                    
+                    if music.settings.showClock {
+                        Text(date, style: .time)
+                            .font(.system(size: 14, weight: .medium))
+                            .monospacedDigit()
+                    }
+                    
+                    Spacer()
+                    
+                    HStack(spacing: 8) {
+                        if music.settings.audioReactive && music.playing {
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(Theme.green)
+                                    .frame(width: 5, height: 5)
+                                    .scaleEffect(1.0 + beatImpact * 0.4)
+                                Text("\(Int(AudioAnalysisService.shared.currentBPM)) BPM")
+                                    .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(Theme.green)
+                            }
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(Theme.green.opacity(0.15), in: Capsule())
+                        }
+                        
+                        Text(music.settings.effect.localizedName.uppercased())
+                            .font(.system(size: 8, weight: .bold))
+                            .tracking(2)
+                            .foregroundStyle(.white.opacity(0.85))
+                    }
+                }
+                
+                Spacer()
+                
+                HStack {
+                    Text(music.playing ? (L10n.current == .ru ? "●  Погрузитесь в музыку" : "●  Immerse in the music") : (L10n.current == .ru ? "●  Время остановиться" : "●  Time to pause"))
+                        .font(.system(size: 10, weight: .medium))
+                    Spacer()
+                }
+            }
+            .padding(20)
+            .foregroundStyle(.white.opacity(0.75))
+        }
+    }
+    
+    // MARK: - Режим 2: «На весь экран» (Fill Screen)
+    @ViewBuilder
+    private func fillView(
+        t: Double,
+        geo: GeometryProxy,
+        isReactive: Bool,
+        beatImpact: Double,
+        beatPhase: Double,
+        dynamicGlow: Double,
+        date: Date
+    ) -> some View {
+        let coverScale = music.settings.computeCoverScale(
+            t: t,
+            beatImpact: beatImpact,
+            beatPhase: beatPhase,
+            isPlaying: music.playing
+        )
+        
+        ZStack {
+            // 1. Полноразмерный кинематографичный артворк
+            AlbumImage(image: music.artwork ?? music.fallback)
+                .scaledToFill()
+                .frame(width: geo.size.width, height: geo.size.height)
+                .blur(radius: music.settings.blurRadius)
+                .scaleEffect(1.04 + (coverScale - 1.0) * 0.35)
+                .clipped()
+            
+            // 2. Палитра наложения с деликатным смешиванием
+            paletteOverlay(geo: geo)
+                .opacity(0.40)
+            
+            // 3. Радиальный мягкий свет в тон обложки
+            RadialGradient(
+                colors: [activeGlowColor.opacity(dynamicGlow * 0.35), .clear],
+                center: .center,
+                startRadius: 20,
+                endRadius: max(geo.size.width, geo.size.height) * 0.65
+            )
+            .blendMode(.screen)
+            
+            // 4. Затемняющие градиенты сверху и снизу для идеальной читаемости
+            VStack {
+                LinearGradient(
+                    colors: [Color.black.opacity(0.60), Color.clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 70)
+                
+                Spacer()
+                
+                LinearGradient(
+                    colors: [Color.clear, Color.black.opacity(0.85)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 125)
+            }
+            
+            // 5. Верхняя статусная панель
+            VStack {
+                HStack(alignment: .center) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(Theme.accent)
+                        Text("Λ U R Λ")
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .tracking(3.5)
+                    }
+                    
+                    Spacer()
+                    
+                    if music.settings.showClock {
+                        Text(date, style: .time)
+                            .font(.system(size: 14, weight: .medium))
+                            .monospacedDigit()
+                    }
+                    
+                    Spacer()
+                    
+                    HStack(spacing: 8) {
+                        if music.settings.audioReactive && music.playing {
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(Theme.green)
+                                    .frame(width: 5, height: 5)
+                                    .scaleEffect(1.0 + beatImpact * 0.4)
+                                Text("\(Int(AudioAnalysisService.shared.currentBPM)) BPM")
+                                    .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(Theme.green)
+                            }
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(Theme.green.opacity(0.15), in: Capsule())
+                        }
+                        
+                        Text(L10n.current == .ru ? "НА ВЕСЬ ЭКРАН" : "FILL SCREEN")
+                            .font(.system(size: 8, weight: .bold))
+                            .tracking(1.8)
+                            .foregroundStyle(.white.opacity(0.85))
+                    }
+                }
+                .padding(20)
+                .foregroundStyle(.white.opacity(0.75))
+                
+                Spacer()
+                
+                // Нижний информационный блок (HUD во весь экран)
+                if music.settings.showInfo {
+                    HStack(alignment: .center, spacing: 14) {
+                        AlbumImage(image: music.artwork ?? music.fallback)
+                            .frame(width: 48, height: 48)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .strokeBorder(.white.opacity(0.22), lineWidth: 1)
+                            )
+                            .shadow(color: .black.opacity(0.55), radius: 10, y: 4)
+                            .scaleEffect(coverScale)
+                        
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(music.title)
+                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .lineLimit(1)
+                                .shadow(color: .black.opacity(0.7), radius: 6, y: 2)
+                            
+                            HStack(spacing: 8) {
+                                Text(music.artist)
+                                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                                    .foregroundStyle(.white.opacity(0.85))
+                                    .lineLimit(1)
+                                    .shadow(color: .black.opacity(0.6), radius: 4, y: 1)
+                                
+                                if isReactive {
+                                    let mode = analysis.analysisMode
+                                    HStack(spacing: 3) {
+                                        Circle()
+                                            .fill(mode.color)
+                                            .frame(width: 4, height: 4)
+                                        Text(mode.badgeTitle)
+                                            .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                            .foregroundStyle(.white.opacity(0.85))
+                                    }
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
+                                    .background(Color.black.opacity(0.4), in: Capsule())
+                                }
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        // Компактный спектральный эквалайзер
+                        if music.settings.effect != .minimal {
+                            let bars = AudioAnalysisService.shared.spectrumBars(at: music.currentPlaybackPosition(), count: 13)
+                            HStack(alignment: .bottom, spacing: 2.5) {
+                                ForEach(0..<13, id: \.self) { i in
+                                    let barHeight: CGFloat = isReactive
+                                        ? CGFloat(3.0 + bars[i] * 16.0 * (1.0 + beatImpact * 0.3))
+                                        : CGFloat(3.0 + abs(sin(t * 3.0 + Double(i) * 0.4)) * 12.0)
+                                    Capsule()
+                                        .fill(Color.white.opacity(isReactive ? 0.85 : 0.6))
+                                        .frame(width: 2.5, height: barHeight)
+                                }
+                            }
+                            .frame(height: 22)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 16)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Режим 3: «Минимализм» (Minimalism)
+    @ViewBuilder
+    private func centerMinimalView(
+        t: Double,
+        geo: GeometryProxy,
+        isReactive: Bool,
+        beatImpact: Double,
+        beatPhase: Double,
+        dynamicGlow: Double,
+        pulseScale: Double,
+        date: Date
+    ) -> some View {
+        let baseArt = min(geo.size.height * 0.46, 220)
+        let artSize = max(90, baseArt * music.settings.coverZoomLevel)
+        let coverScale = music.settings.computeCoverScale(
+            t: t,
+            beatImpact: beatImpact,
+            beatPhase: beatPhase,
+            isPlaying: music.playing
+        )
+        
+        ZStack {
+            // 1. Спокойный мягкий глубоко размытый фон
+            AlbumImage(image: music.artwork ?? music.fallback)
+                .scaledToFill()
+                .frame(width: geo.size.width, height: geo.size.height)
+                .blur(radius: max(32, music.settings.blurRadius))
+                .opacity(0.70)
+                .clipped()
+            
+            // 2. Палитра наложения
+            paletteOverlay(geo: geo)
+                .opacity(0.45)
+            
+            // 3. Деликатный мягкий фоновый свет строго за обложкой
+            RadialGradient(
+                colors: [activeGlowColor.opacity(dynamicGlow * 0.45), .clear],
+                center: .center,
+                startRadius: 15,
+                endRadius: artSize * 1.4
+            )
+            .scaleEffect(pulseScale)
+            .blendMode(.screen)
+            
+            // 4. Парящая чистая обложка по центру (без визуализаторов и шума)
+            VStack(spacing: 14) {
+                if music.settings.effect == .vinyl {
+                    vinylView(t: t, size: artSize, beatImpact: beatImpact, beatPhase: beatPhase)
+                } else {
+                    AlbumImage(image: music.artwork ?? music.fallback)
+                        .frame(width: artSize, height: artSize)
+                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .shadow(color: .black.opacity(0.55), radius: 32, y: 16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .strokeBorder(.white.opacity(0.20), lineWidth: 1.2)
+                        )
+                        .scaleEffect(coverScale)
+                }
+                
+                // Название трека и артист
+                if music.settings.showInfo {
+                    VStack(spacing: 4) {
+                        Text(music.title)
+                            .font(.system(size: geo.size.height > 500 ? 20 : 16, weight: .semibold, design: .rounded))
+                            .lineLimit(1)
+                            .shadow(color: .black.opacity(0.6), radius: 6, y: 2)
+                        
+                        Text(music.artist)
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .opacity(0.80)
+                            .lineLimit(1)
+                            .shadow(color: .black.opacity(0.5), radius: 4, y: 1)
+                    }
+                    .padding(.horizontal, 20)
+                    .foregroundStyle(.white)
+                }
+            }
+            .frame(width: geo.size.width)
+            
+            // 5. Верхняя и нижняя панель
+            VStack {
+                HStack(alignment: .center) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(Theme.accent)
+                        Text("Λ U R Λ")
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .tracking(3.5)
+                    }
+                    
+                    Spacer()
+                    
+                    if music.settings.showClock {
+                        Text(date, style: .time)
+                            .font(.system(size: 14, weight: .medium))
+                            .monospacedDigit()
+                    }
+                    
+                    Spacer()
+                    
+                    Text(L10n.current == .ru ? "МИНИМАЛИЗМ" : "MINIMALISM")
+                        .font(.system(size: 8, weight: .bold))
+                        .tracking(1.8)
+                        .foregroundStyle(.white.opacity(0.85))
+                }
+                
+                Spacer()
+                
+                HStack {
+                    Text(music.playing ? (L10n.current == .ru ? "●  Чистый фокус на звуке" : "●  Pure focus on music") : (L10n.current == .ru ? "●  Пауза" : "●  Paused"))
+                        .font(.system(size: 10, weight: .medium))
+                    Spacer()
+                }
+            }
+            .padding(20)
+            .foregroundStyle(.white.opacity(0.75))
+        }
+    }
+    
+    // MARK: - Центральная сцена с привязкой эффектов к обложке (для режима «Постер»)
     @ViewBuilder
     private func centerContentScene(t: Double, geo: GeometryProxy, beatImpact: Double, beatPhase: Double) -> some View {
         let baseArt = min(geo.size.height * 0.44, 280)
@@ -155,7 +475,8 @@ struct AtmosphereView: View {
                         .scaleEffect(music.settings.computeCoverScale(
                             t: t,
                             beatImpact: beatImpact,
-                            beatPhase: beatPhase
+                            beatPhase: beatPhase,
+                            isPlaying: music.playing
                         ))
                 }
             }
@@ -456,7 +777,8 @@ struct AtmosphereView: View {
         .scaleEffect(music.settings.computeCoverScale(
             t: t,
             beatImpact: beatImpact,
-            beatPhase: beatPhase
+            beatPhase: beatPhase,
+            isPlaying: music.playing
         ))
     }
     

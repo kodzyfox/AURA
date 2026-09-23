@@ -464,15 +464,17 @@ struct Atmosphere: Codable, Equatable {
     func computeCoverScale(
         t: Double,
         beatImpact: Double,
-        beatPhase: Double = 0.0
+        beatPhase: Double = 0.0,
+        isPlaying: Bool = true
     ) -> CGFloat {
         guard coverAnimation != .none else { return 1.0 }
+        guard isPlaying else { return 1.0 }
         
-        let sens = reactiveSensitivity
+        let sens = min(reactiveSensitivity, 1.4)
         
         // Определение активного импульса и фазы:
         // Если играет музыка с аудио-реактивностью — используем точный анализ битов
-        // Если трек на паузе, в режиме предпросмотра или без выраженного бита — используем непрерывную плавную фазу от t
+        // Если без выраженного бита — используем мягкую плавную фазу без резких искусственных ударов
         let activeImpact: Double
         let activePhase: Double
         
@@ -480,25 +482,25 @@ struct Atmosphere: Codable, Equatable {
             activeImpact = min(1.0, max(0.0, beatImpact))
             activePhase = max(0.0, min(1.0, beatPhase))
         } else {
-            let cycle = (t * (1.1 + speed * 0.9)).truncatingRemainder(dividingBy: 1.0)
+            let cycle = (t * (0.8 + speed * 0.4)).truncatingRemainder(dividingBy: 1.0)
             activePhase = max(0.0, min(1.0, cycle < 0 ? cycle + 1.0 : cycle))
-            activeImpact = pow(max(0.0, 1.0 - activePhase * 2.2), 2.0)
+            activeImpact = sin(activePhase * .pi) * 0.35
         }
         
         switch coverAnimation {
         case .beatPulse:
-            // Четкий акцентированный толчок в такт бочке/басу (до +12%)
-            let boost = pow(activeImpact, 1.2) * 0.12 * sens
+            // Мягкий акцентированный толчок в такт бочке/басу (до +4.5%, без резких рывков)
+            let boost = pow(activeImpact, 1.4) * 0.045 * sens
             return 1.0 + CGFloat(boost)
             
         case .breathe:
-            // Плавное глубокое дыхание в темп трека (синусоида ±8%)
-            let breatheCycle = sin(t * (2.2 * (0.6 + speed * 0.8)))
-            let boost = (0.5 + 0.5 * breatheCycle) * 0.08 * sens
+            // Плавное спокойное дыхание в темп трека (синусоида ±3%)
+            let breatheCycle = sin(t * (1.6 * (0.6 + speed * 0.6)))
+            let boost = (0.5 + 0.5 * breatheCycle) * 0.032 * sens
             return 1.0 + CGFloat(boost)
             
         case .heartbeat:
-            // Двойной реалистичный толчок (тук-тук) на каждом такте (до +11%)
+            // Двойной мягкий толчок (тук-тук) на каждом такте (до +3.8%)
             let sub = (activePhase * 2.0).truncatingRemainder(dividingBy: 1.0)
             let subPhase = sub < 0 ? sub + 1.0 : sub
             var thump: Double = 0.0
@@ -507,28 +509,28 @@ struct Atmosphere: Codable, Equatable {
             } else if subPhase >= 0.38 && subPhase < 0.68 {
                 thump = sin((subPhase - 0.38) / 0.30 * .pi) * 0.72
             }
-            let boost = thump * 0.10 * sens * (0.35 + 0.65 * activeImpact)
+            let boost = thump * 0.038 * sens * (0.4 + 0.6 * activeImpact)
             return 1.0 + CGFloat(boost)
             
         case .bounce:
-            // Упругий эластичный отскок с приятным физическим эффектом
+            // Упругий эластичный отскок с деликатным затуханием (до +4%)
             let p = activePhase
             let bounceVal: Double
             if p < 0.25 {
-                bounceVal = sin(p / 0.25 * (.pi * 0.5)) // Взлет до 1.0
+                bounceVal = sin(p / 0.25 * (.pi * 0.5)) // Взлет
             } else if p < 0.55 {
-                bounceVal = 1.0 - sin((p - 0.25) / 0.30 * .pi) * 0.38 // Откат вниз
+                bounceVal = 1.0 - sin((p - 0.25) / 0.30 * .pi) * 0.38 // Откат
             } else if p < 0.80 {
                 bounceVal = 0.62 + sin((p - 0.55) / 0.25 * .pi) * 0.22 // Малый отскок
             } else {
-                bounceVal = 0.62 * (1.0 - (p - 0.80) / 0.20) // Плавное затухание
+                bounceVal = 0.62 * (1.0 - (p - 0.80) / 0.20) // Затухание
             }
-            let boost = max(0.0, bounceVal) * 0.11 * sens * (0.35 + 0.65 * activeImpact)
+            let boost = max(0.0, bounceVal) * 0.040 * sens * (0.4 + 0.6 * activeImpact)
             return 1.0 + CGFloat(boost)
             
         case .subtle:
-            // Деликатная спокойная микро-пульсация (+5%)
-            let boost = activeImpact * 0.048 * sens
+            // Деликатная спокойная микро-пульсация (+2.2%)
+            let boost = activeImpact * 0.022 * sens
             return 1.0 + CGFloat(boost)
             
         case .none:

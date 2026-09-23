@@ -40,18 +40,80 @@ struct OverviewSectionView: View {
             HStack(alignment: .top, spacing: 24) {
                 // Левая колонка: предпросмотр + плеер + эффекты
                 VStack(spacing: 16) {
-                    HStack {
+                    HStack(alignment: .center, spacing: 8) {
                         HStack(spacing: 6) {
                             Text(L10n.preview)
                                 .font(.system(size: 12, weight: .semibold))
                             Circle()
-                                .fill(Theme.green)
+                                .fill(music.playing ? Theme.green : Theme.textTertiary)
                                 .frame(width: 5, height: 5)
                         }
+                        
                         Spacer()
-                        Text(music.activePlayerName ?? music.source.localizedName)
-                            .font(.system(size: 11))
-                            .foregroundStyle(Theme.textTertiary)
+                        
+                        // Селектор стиля обоев для предпросмотра (Постер / На весь экран / Минимализм)
+                        HStack(spacing: 4) {
+                            ForEach(WallpaperStyle.allCases) { style in
+                                Button {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                        music.wallpaperStyle = style
+                                    }
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: style.symbol)
+                                            .font(.system(size: 9))
+                                        Text(style.localizedName)
+                                            .font(.system(size: 9.5, weight: music.wallpaperStyle == style ? .bold : .medium))
+                                    }
+                                    .padding(.horizontal, 7)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        music.wallpaperStyle == style ? Theme.accent.opacity(0.2) : Color.white.opacity(0.04),
+                                        in: RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                            .strokeBorder(music.wallpaperStyle == style ? Theme.accent.opacity(0.6) : Color.white.opacity(0.06), lineWidth: 0.8)
+                                    )
+                                    .foregroundStyle(music.wallpaperStyle == style ? Theme.textPrimary : Theme.textSecondary)
+                                }
+                                .buttonStyle(.plain)
+                                .help(style.localizedName)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        // Быстрое меню выбора анимации/пульсации обложки
+                        Menu {
+                            ForEach(CoverAnimation.allCases) { anim in
+                                Button {
+                                    withAnimation {
+                                        music.settings.coverAnimation = anim
+                                    }
+                                } label: {
+                                    Label(anim.localizedName, systemImage: anim.symbol)
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: music.settings.coverAnimation.symbol)
+                                    .font(.system(size: 9))
+                                    .foregroundStyle(music.settings.coverAnimation == .none ? Theme.textTertiary : Theme.accent)
+                                Text(music.settings.coverAnimation.localizedName)
+                                    .font(.system(size: 9.5, weight: .medium))
+                                    .foregroundStyle(music.settings.coverAnimation == .none ? Theme.textTertiary : Theme.textPrimary)
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .font(.system(size: 7))
+                                    .foregroundStyle(Theme.textTertiary)
+                            }
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 4)
+                            .background(Color.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 6))
+                            .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Color.white.opacity(0.06), lineWidth: 0.8))
+                        }
+                        .menuStyle(.borderlessButton)
+                        .help(L10n.coverAnimationTitle)
                     }
                     
                     AtmosphereView()
@@ -579,6 +641,55 @@ struct OverviewSectionView: View {
                             }
                             .padding(10)
                             .background(Color.white.opacity(0.03), in: RoundedRectangle(cornerRadius: 8))
+                        }
+                    }
+                    .padding(12)
+                    .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.cardBorder, lineWidth: 1))
+                    
+                    // Выбор режима анимации / пульсации обложки
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text(L10n.coverAnimationTitle)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(Theme.textSecondary)
+                            Spacer()
+                            Text(music.settings.coverAnimation.localizedName)
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(music.settings.coverAnimation == .none ? Theme.textTertiary : Theme.accent)
+                        }
+                        
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 3), spacing: 6) {
+                            ForEach(CoverAnimation.allCases) { anim in
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.18)) {
+                                        music.settings.coverAnimation = anim
+                                    }
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: anim.symbol)
+                                            .font(.system(size: 9))
+                                            .foregroundStyle(music.settings.coverAnimation == anim ? Theme.accent : Theme.textSecondary)
+                                        Text(anim.localizedName)
+                                            .font(.system(size: 8.5, weight: music.settings.coverAnimation == anim ? .bold : .regular))
+                                            .lineLimit(1)
+                                            .foregroundStyle(music.settings.coverAnimation == anim ? Theme.textPrimary : Theme.textTertiary)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 4)
+                                    .background(
+                                        music.settings.coverAnimation == anim ? Theme.accent.opacity(0.12) : Color.white.opacity(0.04),
+                                        in: RoundedRectangle(cornerRadius: 6)
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .strokeBorder(music.settings.coverAnimation == anim ? Theme.accent.opacity(0.35) : Color.white.opacity(0.06), lineWidth: 0.8)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .help(anim.localizedName)
+                            }
                         }
                     }
                     .padding(12)

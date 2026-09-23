@@ -201,9 +201,6 @@ import SwiftUI
         if let data = UserDefaults.standard.data(forKey: "aura.settings"),
            let value = try? JSONDecoder().decode(Atmosphere.self, from: data) {
             settings = value
-            if settings.coverAnimation != .none && !settings.animatedDesktopCover {
-                settings.animatedDesktopCover = true
-            }
         }
         presets = presetStore.load()
 

@@ -32,7 +32,7 @@ import SwiftUI
             closeAll()
             return
         }
-        let needsOverlay = music.playing && music.activePlayerName != nil && (music.settings.edgeGlow || music.settings.animatedDesktopCover || music.settings.coverAnimation != .none)
+        let needsOverlay = music.playing && music.activePlayerName != nil && (music.settings.edgeGlow || music.settings.animatedDesktopCover)
         if needsOverlay {
             if windows.isEmpty {
                 reconfigureWindows()
@@ -47,7 +47,7 @@ import SwiftUI
     func reconfigureWindows() {
         closeAll()
         guard let music = musicController else { return }
-        guard music.playing && music.activePlayerName != nil && (music.settings.edgeGlow || music.settings.animatedDesktopCover || music.settings.coverAnimation != .none) else { return }
+        guard music.playing && music.activePlayerName != nil && (music.settings.edgeGlow || music.settings.animatedDesktopCover) else { return }
         
         for screen in NSScreen.screens {
             let window = NSWindow(
@@ -90,7 +90,7 @@ struct DesktopAmbientOverlayView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
-        let isPaused = reduceMotion || !music.playing || (!music.settings.edgeGlow && !music.settings.animatedDesktopCover && music.settings.coverAnimation == .none)
+        let isPaused = reduceMotion || !music.playing || (!music.settings.edgeGlow && !music.settings.animatedDesktopCover)
         let performance = PerformanceManager.shared
         TimelineView(.animation(minimumInterval: performance.overlayFrameInterval, paused: isPaused)) { context in
             let t = isPaused ? 0 : context.date.timeIntervalSinceReferenceDate
@@ -119,7 +119,7 @@ struct DesktopAmbientOverlayView: View {
                 }
                 
                 // 2. Режим анимированной парящей обложки и эффектов по центру рабочего стола
-                if (music.settings.animatedDesktopCover || music.settings.coverAnimation != .none) && music.playing && music.activePlayerName != nil {
+                if music.settings.animatedDesktopCover && music.playing && music.activePlayerName != nil {
                     GeometryReader { geo in
                         let beatImpact = music.settings.audioReactive ? AudioAnalysisService.shared.beatImpact(at: currentPos, sensitivity: music.settings.reactiveSensitivity) : 0.0
                         let beatPhase = music.settings.audioReactive ? AudioAnalysisService.shared.beatPhase(at: currentPos) : 0.0
@@ -335,7 +335,8 @@ struct DesktopAmbientOverlayView: View {
                                     .scaleEffect(music.settings.computeCoverScale(
                                         t: t,
                                         beatImpact: beatImpact,
-                                        beatPhase: beatPhase
+                                        beatPhase: beatPhase,
+                                        isPlaying: music.playing
                                     ))
                                 } else {
                                     // Стандартная парящая обложка
@@ -353,7 +354,8 @@ struct DesktopAmbientOverlayView: View {
                                             .scaleEffect(music.settings.computeCoverScale(
                                                 t: t,
                                                 beatImpact: beatImpact,
-                                                beatPhase: beatPhase
+                                                beatPhase: beatPhase,
+                                                isPlaying: music.playing
                                             ))
                                     }
                                 }

@@ -348,6 +348,25 @@ struct AuraPalettes {
     ]
 }
 
+// MARK: - Структура физики и кинематики движения обложки
+public struct CoverMotion: Sendable, Equatable {
+    public var scaleX: CGFloat = 1.0
+    public var scaleY: CGFloat = 1.0
+    public var offsetY: CGFloat = 0.0
+    public var shadowExtraRadius: CGFloat = 0.0
+    
+    public var scale: CGFloat {
+        (scaleX + scaleY) / 2.0
+    }
+    
+    public init(scaleX: CGFloat = 1.0, scaleY: CGFloat = 1.0, offsetY: CGFloat = 0.0, shadowExtraRadius: CGFloat = 0.0) {
+        self.scaleX = scaleX
+        self.scaleY = scaleY
+        self.offsetY = offsetY
+        self.shadowExtraRadius = shadowExtraRadius
+    }
+}
+
 struct Atmosphere: Codable, Equatable {
     var effect: Effect = .aura
     var intensity: Double = 0.65
@@ -459,83 +478,131 @@ struct Atmosphere: Codable, Equatable {
         default: return artworkColor ?? CGColor(red: 0.0, green: 0.95, blue: 1.0, alpha: 1.0)
         }
     }
+    // Полный расчет кинематики движения обложки (масштаб по осям X/Y, вертикальный отскок и глубина тени)
+    func computeCoverMotion(
+        t: Double,
+        beatImpact: Double,
+        beatPhase: Double = 0.0,
+        bpm: Double = 72.0,
+        isPlaying: Bool = true
+    ) -> CoverMotion {
+        guard coverAnimation != .none else { return CoverMotion() }
+        guard isPlaying else { return CoverMotion() }
+        
+        let sens = min(reactiveSensitivity, 1.4)
+        let rawImpact = audioReactive && beatImpact > 0.01 ? min(1.0, max(0.0, beatImpact)) : 0.0
+        let normPhase = max(0.0, min(1.0, beatPhase.truncatingRemainder(dividingBy: 1.0) < 0 ? beatPhase.truncatingRemainder(dividingBy: 1.0) + 1.0 : beatPhase.truncatingRemainder(dividingBy: 1.0)))
+        
+        switch coverAnimation {
+        case .beatPulse:
+            // 1. БИТ-ТОЛЧОК: Четкий хлесткий удар диффузора сабвуфера строго на бочке/басу
+            // Резкая атака и экспоненциальный возврат
+            let impact = rawImpact > 0.01 ? rawImpact : (sin(normPhase * .pi) * 0.4)
+            let punch = pow(impact, 1.3) * 0.075 * sens
+            let sX = 1.0 + punch * 1.08
+            let sY = 1.0 + punch * 0.92
+            return CoverMotion(scaleX: CGFloat(sX), scaleY: CGFloat(sY), offsetY: 0.0, shadowExtraRadius: CGFloat(punch * 120))
+            
+        case .breathe:
+            // 2. ПЛАВНОЕ ДЫХАНИЕ: Глубокое медитативное дыхание (~16 вдохов в мин)
+            // ПОЛНОСТЬЮ независимо от барабанов и хаотичных битов!
+            let breatheRate = 1.5 * (0.7 + speed * 0.5) // Спокойный цикл ~4.2 секунды
+            let cycle = sin(t * breatheRate)
+            let scaleBoost = (0.5 + 0.5 * cycle) * 0.055 * sens
+            let floatY = -cycle * 6.5 * sens // Парит вверх на вдохе и опускается на выдохе
+            return CoverMotion(
+                scaleX: CGFloat(1.0 + scaleBoost),
+                scaleY: CGFloat(1.0 + scaleBoost),
+                offsetY: CGFloat(floatY),
+                shadowExtraRadius: CGFloat(scaleBoost * 140)
+            )
+            
+        case .heartbeat:
+            // 3. СЕРДЦЕБИЕНИЕ: Настоящий кардио-ритм ЭКГ: "ТУК-тук....... ТУК-тук......."
+            // Первый мощный удар (желудочки), короткая пауза, второй мягкий удар (клапаны) и длинный покой (диастола)
+            let effectiveBpm: Double = (audioReactive && bpm >= 45 && bpm <= 190) ? bpm : 72.0
+            let beatDuration = 60.0 / effectiveBpm
+            let cycle = (t / beatDuration).truncatingRemainder(dividingBy: 1.0)
+            let p = cycle < 0 ? cycle + 1.0 : cycle
+            
+            var scaleBoost: Double = 0.0
+            if p < 0.14 {
+                // Первый мощный удар («ТУК!»)
+                scaleBoost = sin(p / 0.14 * .pi) * 0.072 * sens
+            } else if p >= 0.20 && p < 0.34 {
+                // Второй эхо-толчок («тук!»)
+                scaleBoost = sin((p - 0.20) / 0.14 * .pi) * 0.046 * sens
+            } else {
+                // Диастолический покой (66% времени обложка неподвижна)
+                scaleBoost = 0.0
+            }
+            return CoverMotion(
+                scaleX: CGFloat(1.0 + scaleBoost * 1.05),
+                scaleY: CGFloat(1.0 + scaleBoost),
+                offsetY: 0.0,
+                shadowExtraRadius: CGFloat(scaleBoost * 160)
+            )
+            
+        case .bounce:
+            // 4. УПРУГИЙ ОТСКОК: Физический прыжок обложки в воздух с упругой деформацией (Squash & Stretch)
+            // Прыжок вверх -> зависание -> приземление со сплющиванием -> малый отскок
+            let bouncePhase: Double
+            if rawImpact > 0.05 {
+                bouncePhase = normPhase
+            } else {
+                let cycle = (t * 2.0 * (0.7 + speed * 0.5)).truncatingRemainder(dividingBy: 1.0)
+                bouncePhase = cycle < 0 ? cycle + 1.0 : cycle
+            }
+            
+            var sX: Double = 1.0
+            var sY: Double = 1.0
+            var yOffset: Double = 0.0
+            
+            if bouncePhase < 0.32 {
+                // Взлет и растяжение вверх
+                let pNorm = bouncePhase / 0.32
+                yOffset = -12.0 * sin(pNorm * .pi * 0.5) * sens
+                sX = 1.0 - 0.035 * sin(pNorm * .pi) * sens
+                sY = 1.0 + 0.075 * sin(pNorm * .pi) * sens
+            } else if bouncePhase < 0.58 {
+                // Падение и упругое сжатие (squash) при ударе
+                let pNorm = (bouncePhase - 0.32) / 0.26
+                yOffset = -12.0 * cos(pNorm * .pi * 0.5) * sens
+                sX = 1.0 + 0.070 * sin(pNorm * .pi) * sens
+                sY = 1.0 - 0.048 * sin(pNorm * .pi) * sens
+            } else if bouncePhase < 0.80 {
+                // Малый повторный отскок
+                let pNorm = (bouncePhase - 0.58) / 0.22
+                yOffset = -3.5 * sin(pNorm * .pi) * sens
+                sX = 1.0 + 0.02 * sin(pNorm * .pi) * sens
+                sY = 1.0 + 0.02 * sin(pNorm * .pi) * sens
+            } else {
+                sX = 1.0
+                sY = 1.0
+                yOffset = 0.0
+            }
+            return CoverMotion(scaleX: CGFloat(sX), scaleY: CGFloat(sY), offsetY: CGFloat(yOffset))
+            
+        case .subtle:
+            // 5. МЯГКИЙ БИТ: Деликатная спокойная микро-пульсация (+1.8%) без отвлечения
+            let impact = rawImpact > 0.01 ? rawImpact : (sin(normPhase * .pi) * 0.35)
+            let boost = impact * 0.018 * sens
+            return CoverMotion(scaleX: CGFloat(1.0 + boost), scaleY: CGFloat(1.0 + boost), offsetY: 0.0)
+            
+        case .none:
+            return CoverMotion()
+        }
+    }
     
-    // Расчет исключительно масштаба (пульсации) обложки без смещения координат
+    // Расчет исключительно масштаба (пульсации) обложки для обратной совместимости
     func computeCoverScale(
         t: Double,
         beatImpact: Double,
         beatPhase: Double = 0.0,
+        bpm: Double = 72.0,
         isPlaying: Bool = true
     ) -> CGFloat {
-        guard coverAnimation != .none else { return 1.0 }
-        guard isPlaying else { return 1.0 }
-        
-        let sens = min(reactiveSensitivity, 1.4)
-        
-        // Определение активного импульса и фазы:
-        // Если играет музыка с аудио-реактивностью — используем точный анализ битов
-        // Если без выраженного бита — используем мягкую плавную фазу без резких искусственных ударов
-        let activeImpact: Double
-        let activePhase: Double
-        
-        if audioReactive && beatImpact > 0.01 {
-            activeImpact = min(1.0, max(0.0, beatImpact))
-            activePhase = max(0.0, min(1.0, beatPhase))
-        } else {
-            let cycle = (t * (0.8 + speed * 0.4)).truncatingRemainder(dividingBy: 1.0)
-            activePhase = max(0.0, min(1.0, cycle < 0 ? cycle + 1.0 : cycle))
-            activeImpact = sin(activePhase * .pi) * 0.35
-        }
-        
-        switch coverAnimation {
-        case .beatPulse:
-            // Мягкий акцентированный толчок в такт бочке/басу (до +4.5%, без резких рывков)
-            let boost = pow(activeImpact, 1.4) * 0.045 * sens
-            return 1.0 + CGFloat(boost)
-            
-        case .breathe:
-            // Плавное спокойное дыхание в темп трека (синусоида ±3%)
-            let breatheCycle = sin(t * (1.6 * (0.6 + speed * 0.6)))
-            let boost = (0.5 + 0.5 * breatheCycle) * 0.032 * sens
-            return 1.0 + CGFloat(boost)
-            
-        case .heartbeat:
-            // Двойной мягкий толчок (тук-тук) на каждом такте (до +3.8%)
-            let sub = (activePhase * 2.0).truncatingRemainder(dividingBy: 1.0)
-            let subPhase = sub < 0 ? sub + 1.0 : sub
-            var thump: Double = 0.0
-            if subPhase < 0.30 {
-                thump = sin(subPhase / 0.30 * .pi)
-            } else if subPhase >= 0.38 && subPhase < 0.68 {
-                thump = sin((subPhase - 0.38) / 0.30 * .pi) * 0.72
-            }
-            let boost = thump * 0.038 * sens * (0.4 + 0.6 * activeImpact)
-            return 1.0 + CGFloat(boost)
-            
-        case .bounce:
-            // Упругий эластичный отскок с деликатным затуханием (до +4%)
-            let p = activePhase
-            let bounceVal: Double
-            if p < 0.25 {
-                bounceVal = sin(p / 0.25 * (.pi * 0.5)) // Взлет
-            } else if p < 0.55 {
-                bounceVal = 1.0 - sin((p - 0.25) / 0.30 * .pi) * 0.38 // Откат
-            } else if p < 0.80 {
-                bounceVal = 0.62 + sin((p - 0.55) / 0.25 * .pi) * 0.22 // Малый отскок
-            } else {
-                bounceVal = 0.62 * (1.0 - (p - 0.80) / 0.20) // Затухание
-            }
-            let boost = max(0.0, bounceVal) * 0.040 * sens * (0.4 + 0.6 * activeImpact)
-            return 1.0 + CGFloat(boost)
-            
-        case .subtle:
-            // Деликатная спокойная микро-пульсация (+2.2%)
-            let boost = activeImpact * 0.022 * sens
-            return 1.0 + CGFloat(boost)
-            
-        case .none:
-            return 1.0
-        }
+        computeCoverMotion(t: t, beatImpact: beatImpact, beatPhase: beatPhase, bpm: bpm, isPlaying: isPlaying).scale
     }
 }
 
@@ -563,6 +630,23 @@ enum CoverAnimation: String, CaseIterable, Identifiable, Codable {
         case (.subtle, .en): return "Subtle Pulse"
         case (.none, .ru): return "Без пульсации"
         case (.none, .en): return "Static"
+        }
+    }
+    
+    var localizedDescription: String {
+        switch (self, L10n.current) {
+        case (.beatPulse, .ru): return "Хлесткий упругий удар диффузора в такт басу и бочке."
+        case (.beatPulse, .en): return "Punchy acoustic kick responding dynamically to drums & bass."
+        case (.breathe, .ru): return "Спокойное медитативное дыхание и парение (отвязано от резких битов)."
+        case (.breathe, .en): return "Calm meditative breathing and hovering (decoupled from drums)."
+        case (.heartbeat, .ru): return "Анатомический кардио-ритм: двойной толчок «ТУК-тук» и пауза покоя."
+        case (.heartbeat, .en): return "Anatomical cardiac cycle: double pulse 'LUB-DUB' with diastolic rest."
+        case (.bounce, .ru): return "Физический прыжок обложки в воздух с упругим сжатием при падении."
+        case (.bounce, .en): return "Physical high bounce with cartoon squash & stretch deformation."
+        case (.subtle, .ru): return "Деликатная микро-пульсация (+1.8%) без отвлечения внимания."
+        case (.subtle, .en): return "Delicate micro-pulse (+1.8%) for distraction-free focus."
+        case (.none, .ru): return "Полностью статичная обложка без движения."
+        case (.none, .en): return "Completely motionless static artwork."
         }
     }
     

@@ -275,6 +275,12 @@ struct DesktopAmbientOverlayView: View {
                                 }
                                 
                                 // Центральный элемент: Виниловая пластинка или Обложка
+                                let motion = music.settings.computeCoverMotion(
+                                    t: t,
+                                    beatImpact: beatImpact,
+                                    beatPhase: beatPhase,
+                                    isPlaying: music.playing
+                                )
                                 if music.settings.effect == .vinyl {
                                     // Виниловая пластинка с вращением
                                     let vinylSize = coverDim * 1.18
@@ -332,12 +338,8 @@ struct DesktopAmbientOverlayView: View {
                                             .overlay(Circle().stroke(Color.white.opacity(0.4), lineWidth: 1))
                                     }
                                     .rotationEffect(.degrees(reduceMotion ? 0 : t * 36))
-                                    .scaleEffect(music.settings.computeCoverScale(
-                                        t: t,
-                                        beatImpact: beatImpact,
-                                        beatPhase: beatPhase,
-                                        isPlaying: music.playing
-                                    ))
+                                    .scaleEffect(x: motion.scaleX, y: motion.scaleY)
+                                    .offset(y: motion.offsetY)
                                 } else {
                                     // Стандартная парящая обложка
                                     if let art = music.artwork ?? music.fallback {
@@ -350,13 +352,9 @@ struct DesktopAmbientOverlayView: View {
                                                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                                                     .strokeBorder(.white.opacity(0.20), lineWidth: 1.2)
                                             )
-                                            .shadow(color: .black.opacity(0.65), radius: 36, y: 16)
-                                            .scaleEffect(music.settings.computeCoverScale(
-                                                t: t,
-                                                beatImpact: beatImpact,
-                                                beatPhase: beatPhase,
-                                                isPlaying: music.playing
-                                            ))
+                                            .shadow(color: .black.opacity(0.65), radius: 36 + motion.shadowExtraRadius, y: 16)
+                                            .scaleEffect(x: motion.scaleX, y: motion.scaleY)
+                                            .offset(y: motion.offsetY)
                                     }
                                 }
                             }

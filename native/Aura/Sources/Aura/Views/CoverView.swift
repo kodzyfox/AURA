@@ -89,20 +89,22 @@ struct CoverView: View {
                         let baseDimension = min(geo.size.width * 0.45, availableHeight, 420)
                         let coverDimension = max(180, baseDimension * music.settings.coverZoomLevel)
                         
+                        let motion = music.settings.computeCoverMotion(
+                            t: t,
+                            beatImpact: AudioAnalysisService.shared.beatImpact(at: currentPos),
+                            beatPhase: AudioAnalysisService.shared.beatPhase(at: currentPos),
+                            isPlaying: music.playing
+                        )
                         AlbumImage(image: music.artwork ?? music.fallback)
                             .frame(width: coverDimension, height: coverDimension)
                             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .shadow(color: .black.opacity(0.65), radius: 45, y: 22)
+                            .shadow(color: .black.opacity(0.65), radius: 45 + motion.shadowExtraRadius, y: 22)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                                     .strokeBorder(.white.opacity(0.18), lineWidth: 1.2)
                             )
-                            .scaleEffect(music.settings.computeCoverScale(
-                                t: t,
-                                beatImpact: AudioAnalysisService.shared.beatImpact(at: currentPos),
-                                beatPhase: AudioAnalysisService.shared.beatPhase(at: currentPos),
-                                isPlaying: music.playing
-                            ))
+                            .scaleEffect(x: motion.scaleX, y: motion.scaleY)
+                            .offset(y: motion.offsetY)
                         
                         // Название трека и артист по центру (в точности как на скриншоте)
                         VStack(spacing: 4) {

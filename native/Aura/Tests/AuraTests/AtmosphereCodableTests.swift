@@ -128,4 +128,30 @@ final class AtmosphereCodableTests: XCTestCase {
         let pausedScale = atmosphere.computeCoverScale(t: 10.0, beatImpact: 0.9, isPlaying: false)
         XCTAssertEqual(pausedScale, 1.0)
     }
+    
+    func testComputeCoverMotionUniqueCharacteristics() {
+        var atmosphere = Atmosphere()
+        atmosphere.audioReactive = true
+        atmosphere.reactiveSensitivity = 1.0
+        
+        // 1. Плавное дыхание (breathe) должно иметь вертикальное парение (offsetY != 0)
+        atmosphere.coverAnimation = .breathe
+        let breatheMotion = atmosphere.computeCoverMotion(t: 1.05, beatImpact: 0.0)
+        XCTAssertNotEqual(breatheMotion.offsetY, 0.0, "Breathe must have vertical floating offset")
+        
+        // 2. Упругий отскок (bounce) должен иметь прыжок вверх (offsetY < 0) и растяжение (scaleY > scaleX)
+        atmosphere.coverAnimation = .bounce
+        let bounceMotion = atmosphere.computeCoverMotion(t: 0.0, beatImpact: 0.8, beatPhase: 0.15)
+        XCTAssertLessThan(bounceMotion.offsetY, 0.0, "Bounce must jump upward into the air")
+        XCTAssertGreaterThan(bounceMotion.scaleY, bounceMotion.scaleX, "Bounce must stretch along Y during jump")
+        
+        // 3. Сердцебиение (heartbeat) в фазе покоя (диастола, например фаза 0.6) должно быть полностью в покое (scale == 1.0)
+        atmosphere.coverAnimation = .heartbeat
+        let restMotion = atmosphere.computeCoverMotion(t: 0.5, beatImpact: 0.8, beatPhase: 0.0, bpm: 60.0)
+        XCTAssertEqual(restMotion.scale, 1.0, accuracy: 0.001, "Heartbeat must have a quiet resting pause (diastole)")
+        
+        // А в фазе систолы (t = 0.05 при 60 BPM) должен быть мощный удар
+        let systoleMotion = atmosphere.computeCoverMotion(t: 0.05, beatImpact: 0.8, beatPhase: 0.0, bpm: 60.0)
+        XCTAssertGreaterThan(systoleMotion.scale, 1.03, "Heartbeat must have an energetic systolic thump")
+    }
 }

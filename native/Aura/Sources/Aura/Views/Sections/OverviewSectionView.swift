@@ -649,48 +649,57 @@ struct OverviewSectionView: View {
                     
                     // Выбор режима анимации / пульсации обложки
                     VStack(alignment: .leading, spacing: 8) {
-                        HStack {
+                        HStack(alignment: .firstTextBaseline) {
                             Text(L10n.coverAnimationTitle)
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundStyle(Theme.textSecondary)
+                                .layoutPriority(1)
                             Spacer()
                             Text(music.settings.coverAnimation.localizedName)
                                 .font(.system(size: 10, weight: .semibold))
                                 .foregroundStyle(music.settings.coverAnimation == .none ? Theme.textTertiary : Theme.accent)
                         }
                         
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 3), spacing: 6) {
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)], spacing: 6) {
                             ForEach(CoverAnimation.allCases) { anim in
                                 Button {
                                     withAnimation(.easeInOut(duration: 0.18)) {
                                         music.settings.coverAnimation = anim
                                     }
                                 } label: {
-                                    HStack(spacing: 4) {
+                                    HStack(spacing: 5) {
                                         Image(systemName: anim.symbol)
-                                            .font(.system(size: 9))
+                                            .font(.system(size: 10))
                                             .foregroundStyle(music.settings.coverAnimation == anim ? Theme.accent : Theme.textSecondary)
                                         Text(anim.localizedName)
-                                            .font(.system(size: 8.5, weight: music.settings.coverAnimation == anim ? .bold : .regular))
+                                            .font(.system(size: 9.5, weight: music.settings.coverAnimation == anim ? .bold : .regular))
                                             .lineLimit(1)
+                                            .minimumScaleFactor(0.85)
                                             .foregroundStyle(music.settings.coverAnimation == anim ? Theme.textPrimary : Theme.textTertiary)
                                     }
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 6)
-                                    .padding(.horizontal, 4)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.vertical, 7)
+                                    .padding(.horizontal, 8)
                                     .background(
-                                        music.settings.coverAnimation == anim ? Theme.accent.opacity(0.12) : Color.white.opacity(0.04),
-                                        in: RoundedRectangle(cornerRadius: 6)
+                                        music.settings.coverAnimation == anim ? Theme.accent.opacity(0.14) : Color.white.opacity(0.04),
+                                        in: RoundedRectangle(cornerRadius: 7)
                                     )
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .strokeBorder(music.settings.coverAnimation == anim ? Theme.accent.opacity(0.35) : Color.white.opacity(0.06), lineWidth: 0.8)
+                                        RoundedRectangle(cornerRadius: 7)
+                                            .strokeBorder(music.settings.coverAnimation == anim ? Theme.accent.opacity(0.4) : Color.white.opacity(0.06), lineWidth: 0.8)
                                     )
                                 }
                                 .buttonStyle(.plain)
-                                .help(anim.localizedName)
+                                .help(anim.localizedDescription)
                             }
                         }
+                        
+                        Text(music.settings.coverAnimation.localizedDescription)
+                            .font(.system(size: 9.5))
+                            .foregroundStyle(Theme.textTertiary)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 2)
                     }
                     .padding(12)
                     .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: 10))
@@ -1001,48 +1010,57 @@ struct OverviewSectionView: View {
                     // Выбор стиля пульсации обложки
                     if music.settings.animatedDesktopCover {
                         VStack(alignment: .leading, spacing: 6) {
-                            HStack {
+                            HStack(alignment: .firstTextBaseline) {
                                 Text(L10n.coverAnimationTitle)
                                     .font(.system(size: 10, weight: .medium))
                                     .foregroundStyle(Theme.textSecondary)
+                                    .layoutPriority(1)
                                 Spacer()
                                 Text(music.settings.coverAnimation.localizedName)
                                     .font(.system(size: 9.5, weight: .semibold))
                                     .foregroundStyle(Theme.accent)
                             }
                             
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 3), spacing: 6) {
+                            LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)], spacing: 6) {
                                 ForEach(CoverAnimation.allCases) { anim in
                                     Button {
                                         withAnimation(.easeInOut(duration: 0.18)) {
                                             music.settings.coverAnimation = anim
                                         }
                                     } label: {
-                                        HStack(spacing: 4) {
+                                        HStack(spacing: 5) {
                                             Image(systemName: anim.symbol)
                                                 .font(.system(size: 9.5))
                                                 .foregroundStyle(music.settings.coverAnimation == anim ? Theme.accent : Theme.textSecondary)
                                             Text(anim.localizedName)
-                                                .font(.system(size: 8.5, weight: music.settings.coverAnimation == anim ? .bold : .regular))
+                                                .font(.system(size: 9, weight: music.settings.coverAnimation == anim ? .bold : .regular))
                                                 .lineLimit(1)
+                                                .minimumScaleFactor(0.85)
                                                 .foregroundStyle(music.settings.coverAnimation == anim ? Theme.textPrimary : Theme.textTertiary)
                                         }
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 5)
-                                        .padding(.horizontal, 3)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.vertical, 6)
+                                        .padding(.horizontal, 7)
                                         .background(
-                                            music.settings.coverAnimation == anim ? Theme.accent.opacity(0.12) : Color.white.opacity(0.04),
+                                            music.settings.coverAnimation == anim ? Theme.accent.opacity(0.14) : Color.white.opacity(0.04),
                                             in: RoundedRectangle(cornerRadius: 6)
                                         )
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 6)
-                                                .strokeBorder(music.settings.coverAnimation == anim ? Theme.accent.opacity(0.35) : Color.white.opacity(0.06), lineWidth: 0.8)
+                                                .strokeBorder(music.settings.coverAnimation == anim ? Theme.accent.opacity(0.4) : Color.white.opacity(0.06), lineWidth: 0.8)
                                         )
                                     }
                                     .buttonStyle(.plain)
-                                    .help(anim.localizedName)
+                                    .help(anim.localizedDescription)
                                 }
                             }
+                            
+                            Text(music.settings.coverAnimation.localizedDescription)
+                                .font(.system(size: 9))
+                                .foregroundStyle(Theme.textTertiary)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.top, 1)
                         }
                         .padding(.vertical, 2)
                     }

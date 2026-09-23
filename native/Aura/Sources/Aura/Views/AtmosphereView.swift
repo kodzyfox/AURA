@@ -141,7 +141,7 @@ struct AtmosphereView: View {
         dynamicGlow: Double,
         date: Date
     ) -> some View {
-        let coverScale = music.settings.computeCoverScale(
+        let motion = music.settings.computeCoverMotion(
             t: t,
             beatImpact: beatImpact,
             beatPhase: beatPhase,
@@ -252,8 +252,9 @@ struct AtmosphereView: View {
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                                     .strokeBorder(.white.opacity(0.20), lineWidth: 1)
                             )
-                            .shadow(color: .black.opacity(0.55), radius: 10, y: 4)
-                            .scaleEffect(coverScale)
+                            .shadow(color: .black.opacity(0.55), radius: 10 + motion.shadowExtraRadius * 0.25, y: 4)
+                            .scaleEffect(x: motion.scaleX, y: motion.scaleY)
+                            .offset(y: motion.offsetY * 0.4)
                         
                         VStack(alignment: .leading, spacing: 3) {
                             Text(music.title)
@@ -362,7 +363,7 @@ struct AtmosphereView: View {
     ) -> some View {
         let baseArt = min(geo.size.height * 0.46, 220)
         let artSize = max(90, baseArt * music.settings.coverZoomLevel)
-        let coverScale = music.settings.computeCoverScale(
+        let motion = music.settings.computeCoverMotion(
             t: t,
             beatImpact: beatImpact,
             beatPhase: beatPhase,
@@ -396,16 +397,19 @@ struct AtmosphereView: View {
             VStack(spacing: 14) {
                 if music.settings.effect == .vinyl {
                     vinylView(t: t, size: artSize, beatImpact: beatImpact, beatPhase: beatPhase)
+                        .scaleEffect(x: motion.scaleX, y: motion.scaleY)
+                        .offset(y: motion.offsetY)
                 } else {
                     AlbumImage(image: music.artwork ?? music.fallback)
                         .frame(width: artSize, height: artSize)
                         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                        .shadow(color: .black.opacity(0.55), radius: 32, y: 16)
+                        .shadow(color: .black.opacity(0.55), radius: 32 + motion.shadowExtraRadius, y: 16)
                         .overlay(
                             RoundedRectangle(cornerRadius: 18, style: .continuous)
                                 .strokeBorder(.white.opacity(0.20), lineWidth: 1.2)
                         )
-                        .scaleEffect(coverScale)
+                        .scaleEffect(x: motion.scaleX, y: motion.scaleY)
+                        .offset(y: motion.offsetY)
                 }
                 
                 // Название трека и артист
@@ -503,23 +507,27 @@ struct AtmosphereView: View {
                 }
                 
                 // Сама обложка или вращающийся виниловый диск
+                let motion = music.settings.computeCoverMotion(
+                    t: t,
+                    beatImpact: beatImpact,
+                    beatPhase: beatPhase,
+                    isPlaying: music.playing
+                )
                 if music.settings.effect == .vinyl {
                     vinylView(t: t, size: artSize, beatImpact: beatImpact, beatPhase: beatPhase)
+                        .scaleEffect(x: motion.scaleX, y: motion.scaleY)
+                        .offset(y: motion.offsetY)
                 } else {
                     AlbumImage(image: music.artwork ?? music.fallback)
                         .frame(width: artSize, height: artSize)
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .shadow(color: .black.opacity(0.42), radius: 26, y: 14)
+                        .shadow(color: .black.opacity(0.42), radius: 26 + motion.shadowExtraRadius, y: 14)
                         .overlay(
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
                                 .strokeBorder(.white.opacity(0.18), lineWidth: 1.2)
                         )
-                        .scaleEffect(music.settings.computeCoverScale(
-                            t: t,
-                            beatImpact: beatImpact,
-                            beatPhase: beatPhase,
-                            isPlaying: music.playing
-                        ))
+                        .scaleEffect(x: motion.scaleX, y: motion.scaleY)
+                        .offset(y: motion.offsetY)
                 }
             }
             .frame(width: artSize, height: artSize)

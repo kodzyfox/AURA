@@ -543,45 +543,29 @@ struct Atmosphere: Codable, Equatable {
                 shadowExtraRadius: CGFloat(scaleBoost * 160)
             )
             
-        case .bounce:
-            // 4. УПРУГИЙ ОТСКОК: Физический прыжок обложки в воздух с упругой деформацией (Squash & Stretch)
-            // Прыжок вверх -> зависание -> приземление со сплющиванием -> малый отскок
-            let bouncePhase: Double
-            if rawImpact > 0.05 {
-                bouncePhase = normPhase
-            } else {
-                let cycle = (t * 2.0 * (0.7 + speed * 0.5)).truncatingRemainder(dividingBy: 1.0)
-                bouncePhase = cycle < 0 ? cycle + 1.0 : cycle
-            }
+        case .wave:
+            // 4. ШЕЛКОВАЯ ВОЛНА: Мягкий гармоничный накат звука без резких ударов
+            // Плавное синусоидальное покачивание и бархатистый прилив объема (Swell)
+            let waveSpeed = (audioReactive && bpm >= 50 && bpm <= 180) ? (bpm / 60.0 * 0.5) : (0.55 * (0.8 + speed * 0.4))
+            let cycle = (t * waveSpeed).truncatingRemainder(dividingBy: 1.0)
+            let p = cycle < 0 ? cycle + 1.0 : cycle
             
-            var sX: Double = 1.0
-            var sY: Double = 1.0
-            var yOffset: Double = 0.0
+            // Гармонический прилив по плавной функции Hann (1 - cos)/2: гладкая производная в нуле и пике (абсолютно никаких скачков)
+            let smoothSwell = (1.0 - cos(p * .pi * 2.0)) * 0.5
             
-            if bouncePhase < 0.32 {
-                // Взлет и растяжение вверх
-                let pNorm = bouncePhase / 0.32
-                yOffset = -12.0 * sin(pNorm * .pi * 0.5) * sens
-                sX = 1.0 - 0.035 * sin(pNorm * .pi) * sens
-                sY = 1.0 + 0.075 * sin(pNorm * .pi) * sens
-            } else if bouncePhase < 0.58 {
-                // Падение и упругое сжатие (squash) при ударе
-                let pNorm = (bouncePhase - 0.32) / 0.26
-                yOffset = -12.0 * cos(pNorm * .pi * 0.5) * sens
-                sX = 1.0 + 0.070 * sin(pNorm * .pi) * sens
-                sY = 1.0 - 0.048 * sin(pNorm * .pi) * sens
-            } else if bouncePhase < 0.80 {
-                // Малый повторный отскок
-                let pNorm = (bouncePhase - 0.58) / 0.22
-                yOffset = -3.5 * sin(pNorm * .pi) * sens
-                sX = 1.0 + 0.02 * sin(pNorm * .pi) * sens
-                sY = 1.0 + 0.02 * sin(pNorm * .pi) * sens
-            } else {
-                sX = 1.0
-                sY = 1.0
-                yOffset = 0.0
-            }
-            return CoverMotion(scaleX: CGFloat(sX), scaleY: CGFloat(sY), offsetY: CGFloat(yOffset))
+            // Деликатный звуковой отклик: усиливаем глубину прилива от энергии трека, сохраняя шелковую текучесть
+            let musicalWeight = 0.65 + 0.35 * rawImpact
+            let scaleBoost = smoothSwell * 0.042 * sens * musicalWeight
+            
+            // Очень деликатное волнообразное покачивание (плавный подъем на волне и мягкий спуск, всего +-2.8 pt)
+            let floatY = -sin(p * .pi * 2.0) * 2.8 * sens
+            
+            return CoverMotion(
+                scaleX: CGFloat(1.0 + scaleBoost),
+                scaleY: CGFloat(1.0 + scaleBoost),
+                offsetY: CGFloat(floatY),
+                shadowExtraRadius: CGFloat(scaleBoost * 120)
+            )
             
         case .subtle:
             // 5. МЯГКИЙ БИТ: Деликатная спокойная микро-пульсация (+1.8%) без отвлечения
@@ -610,11 +594,27 @@ enum CoverAnimation: String, CaseIterable, Identifiable, Codable {
     case beatPulse = "beatPulse"
     case breathe = "breathe"
     case heartbeat = "heartbeat"
-    case bounce = "bounce"
+    case wave = "wave"
     case subtle = "subtle"
     case none = "none"
     
     var id: String { rawValue }
+    
+    // Безопасное декодирование со 100% совместимостью (старое "bounce" бесшовно мигрирует в "wave")
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        if raw == "bounce" {
+            self = .wave
+        } else {
+            self = CoverAnimation(rawValue: raw) ?? .beatPulse
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
     
     var localizedName: String {
         switch (self, L10n.current) {
@@ -624,8 +624,8 @@ enum CoverAnimation: String, CaseIterable, Identifiable, Codable {
         case (.breathe, .en): return "Smooth Breathe"
         case (.heartbeat, .ru): return "Сердцебиение"
         case (.heartbeat, .en): return "Heartbeat"
-        case (.bounce, .ru): return "Упругий отскок"
-        case (.bounce, .en): return "Elastic Bounce"
+        case (.wave, .ru): return "Шелковая волна"
+        case (.wave, .en): return "Silk Wave"
         case (.subtle, .ru): return "Мягкий бит"
         case (.subtle, .en): return "Subtle Pulse"
         case (.none, .ru): return "Без пульсации"
@@ -641,8 +641,8 @@ enum CoverAnimation: String, CaseIterable, Identifiable, Codable {
         case (.breathe, .en): return "Calm meditative breathing and hovering (decoupled from drums)."
         case (.heartbeat, .ru): return "Анатомический кардио-ритм: двойной толчок «ТУК-тук» и пауза покоя."
         case (.heartbeat, .en): return "Anatomical cardiac cycle: double pulse 'LUB-DUB' with diastolic rest."
-        case (.bounce, .ru): return "Физический прыжок обложки в воздух с упругим сжатием при падении."
-        case (.bounce, .en): return "Physical high bounce with cartoon squash & stretch deformation."
+        case (.wave, .ru): return "Мягкий гармоничный накат звука с шелковистым приливом без резких ударов."
+        case (.wave, .en): return "Smooth harmonic sound swell with silky, gentle rolling motion and zero abrupt kicks."
         case (.subtle, .ru): return "Деликатная микро-пульсация (+1.8%) без отвлечения внимания."
         case (.subtle, .en): return "Delicate micro-pulse (+1.8%) for distraction-free focus."
         case (.none, .ru): return "Полностью статичная обложка без движения."
@@ -655,7 +655,7 @@ enum CoverAnimation: String, CaseIterable, Identifiable, Codable {
         case .beatPulse: return "waveform.path.ecg"
         case .breathe: return "wind"
         case .heartbeat: return "heart.fill"
-        case .bounce: return "arrow.up.and.down"
+        case .wave: return "water.waves"
         case .subtle: return "circle.dotted"
         case .none: return "slash.circle"
         }

@@ -139,11 +139,12 @@ final class AtmosphereCodableTests: XCTestCase {
         let breatheMotion = atmosphere.computeCoverMotion(t: 1.05, beatImpact: 0.0)
         XCTAssertNotEqual(breatheMotion.offsetY, 0.0, "Breathe must have vertical floating offset")
         
-        // 2. Упругий отскок (bounce) должен иметь прыжок вверх (offsetY < 0) и растяжение (scaleY > scaleX)
-        atmosphere.coverAnimation = .bounce
-        let bounceMotion = atmosphere.computeCoverMotion(t: 0.0, beatImpact: 0.8, beatPhase: 0.15)
-        XCTAssertLessThan(bounceMotion.offsetY, 0.0, "Bounce must jump upward into the air")
-        XCTAssertGreaterThan(bounceMotion.scaleY, bounceMotion.scaleX, "Bounce must stretch along Y during jump")
+        // 2. Шелковая волна (wave) должна сохранять пропорции обложки (scaleX == scaleY) и иметь плавное покачивание
+        atmosphere.coverAnimation = .wave
+        let waveMotionPeak = atmosphere.computeCoverMotion(t: 1.0, beatImpact: 0.8, bpm: 60.0)
+        XCTAssertEqual(waveMotionPeak.scaleX, waveMotionPeak.scaleY, "Wave must preserve aspect ratio (no cartoon squash)")
+        XCTAssertGreaterThan(waveMotionPeak.scale, 1.0, "Wave must have a gentle swell above 1.0")
+        XCTAssertLessThanOrEqual(abs(waveMotionPeak.offsetY), 3.5, "Wave floating must be gentle and not abrupt")
         
         // 3. Сердцебиение (heartbeat) в фазе покоя (диастола, например фаза 0.6) должно быть полностью в покое (scale == 1.0)
         atmosphere.coverAnimation = .heartbeat
@@ -153,5 +154,16 @@ final class AtmosphereCodableTests: XCTestCase {
         // А в фазе систолы (t = 0.05 при 60 BPM) должен быть мощный удар
         let systoleMotion = atmosphere.computeCoverMotion(t: 0.05, beatImpact: 0.8, beatPhase: 0.0, bpm: 60.0)
         XCTAssertGreaterThan(systoleMotion.scale, 1.03, "Heartbeat must have an energetic systolic thump")
+    }
+    
+    func testBounceMigratesToWaveOnDecode() throws {
+        let json = """
+        {
+            "coverAnimation": "bounce"
+        }
+        """.data(using: .utf8)!
+        
+        let decoded = try JSONDecoder().decode(Atmosphere.self, from: json)
+        XCTAssertEqual(decoded.coverAnimation, CoverAnimation.wave, "Legacy 'bounce' animation must migrate to 'wave' on decode")
     }
 }

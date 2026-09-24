@@ -162,6 +162,7 @@ extension NSScreen {
     
     func restoreOriginalWallpaper() {
         isManagingWallpaper = false
+        renderGeneration &+= 1   // Инвалидируем все in-flight рендер-задачи
         currentRenderTask?.cancel()
         currentRenderTask = nil
         
@@ -194,12 +195,19 @@ extension NSScreen {
             _ = NSAppleScript(source: script)?.executeAndReturnError(nil)
         }
         
-        // Удаляем активные временные файлы обоев после применения оригинальных
-        for (_, url) in currentWallpaperURLs {
-            try? FileManager.default.removeItem(at: url)
-        }
+        // Удаляем временные файлы обоев AURA с задержкой ~3с.
+        // macOS Finder применяет смену обоев асинхронно: если удалить файл
+        // сразу после setDesktopImageURL, Finder теряет ссылку на него и
+        // зависает с размытым фоном AURA, не успев загрузить оригинальные обои.
+        let urlsToDelete = currentWallpaperURLs
         currentWallpaperURLs.removeAll()
         ciContext.clearCaches()
+        Task.detached(priority: .background) {
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            for (_, url) in urlsToDelete {
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
     }
     
     // MARK: - Асинхронная установка динамических обоев
@@ -330,14 +338,20 @@ extension NSScreen {
             }
         }
         
-        // Удаляем предыдущие временные файлы, замененные новыми
-        for (id, oldURL) in self.currentWallpaperURLs {
-            if newCurrentURLs[id] != oldURL {
-                try? FileManager.default.removeItem(at: oldURL)
-            }
+        // Удаляем предыдущие временные файлы с задержкой, давая Finder время загрузить новые
+        let oldURLsToDelete = self.currentWallpaperURLs.compactMap { (id, oldURL) -> URL? in
+            newCurrentURLs[id] != oldURL ? oldURL : nil
         }
         self.currentWallpaperURLs = newCurrentURLs
         ciContext.clearCaches()
+        if !oldURLsToDelete.isEmpty {
+            Task.detached(priority: .background) {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                for url in oldURLsToDelete {
+                    try? FileManager.default.removeItem(at: url)
+                }
+            }
+        }
     }
     
     // MARK: - Фоновый рендеринг CoreGraphics & CoreImage

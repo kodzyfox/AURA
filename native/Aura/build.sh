@@ -51,6 +51,12 @@ STAGING="dist/dmg_staging"
 RW_DMG="dist/Aura_rw.dmg"
 FINAL_DMG="dist/Aura.dmg"
 
+# Eject any already mounted Aura volumes so they don't conflict
+while hdiutil info | grep -q "/Volumes/Aura"; do
+    EXISTING_DEV=$(hdiutil info | grep "/Volumes/Aura" | head -n 1 | awk '{print $1}')
+    hdiutil detach "$EXISTING_DEV" -force >/dev/null 2>&1 || break
+done
+
 # Clean up previous artifacts
 rm -rf "$STAGING" "$RW_DMG" "$FINAL_DMG"
 mkdir -p "$STAGING/.background"
@@ -79,8 +85,8 @@ hdiutil create -volname "Aura" -srcfolder "$STAGING" -fs HFS+ -ov -format UDRW "
 
 # Mount read-write image
 MOUNT_OUTPUT=$(hdiutil attach -readwrite -noverify -noautoopen "$RW_DMG")
-MOUNT_DIR=$(echo "$MOUNT_OUTPUT" | grep "/Volumes/Aura" | awk '{print $3}')
-MOUNT_DEV=$(echo "$MOUNT_OUTPUT" | grep "/Volumes/Aura" | awk '{print $1}')
+MOUNT_DEV=$(echo "$MOUNT_OUTPUT" | awk '/\/Volumes/{print $1; exit}')
+MOUNT_DIR=$(echo "$MOUNT_OUTPUT" | awk -F'\t' '/\/Volumes/{print $NF; exit}')
 
 # Apply Finder view settings & layout via AppleScript
 osascript << 'APPLESCRIPT'
@@ -97,7 +103,9 @@ tell application "Finder"
         set label position of theViewOptions to bottom
         set arrangement of theViewOptions to not arranged
         try
-            set background picture of theViewOptions to file "dmg_background.png" of folder ".background"
+            set background picture of theViewOptions to file ".background:dmg_background.png"
+        on error errMsg
+            log "Failed to set background picture: " & errMsg
         end try
         
         -- Move all hidden items far off-screen so they never display in the window even with Cmd+Shift+.
@@ -117,7 +125,14 @@ tell application "Finder"
         update without registering applications
         delay 1
         close
+        open
+        delay 1
+        set the bounds of container window to {300, 150, 960, 570}
+        delay 1
     end tell
+    set selection to {}
+    delay 1
+    tell disk "Aura" to close
 end tell
 APPLESCRIPT
 
@@ -125,6 +140,7 @@ if command -v SetFile >/dev/null 2>&1; then
     SetFile -a C "$MOUNT_DIR" 2>/dev/null || true
 fi
 
+sleep 2
 sync
 hdiutil detach "$MOUNT_DEV" -force >/dev/null
 

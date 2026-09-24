@@ -9,6 +9,8 @@ import SwiftUI
     
     private var windows: [NSWindow] = []
     private weak var musicController: MusicController?
+    /// Отложенная задача закрытия оверлея (даёт время обоям восстановиться)
+    private var delayedCloseTask: Task<Void, Never>?
     
     private init() {
         NotificationCenter.default.addObserver(
@@ -29,22 +31,47 @@ import SwiftUI
     
     func updateOverlayState() {
         guard let music = musicController else {
+            cancelDelayedClose()
             closeAll()
             return
         }
         let needsOverlay = music.playing && music.activePlayerName != nil && (music.settings.edgeGlow || music.settings.animatedDesktopCover)
         if needsOverlay {
+            // Воспроизведение возобновилось — отменяем отложенное закрытие
+            cancelDelayedClose()
             if windows.isEmpty {
                 reconfigureWindows()
             }
         } else {
-            // При паузе или стопе немедленно убираем окна оверлея,
-            // чтобы обложка мгновенно исчезала с рабочего стола
-            closeAll()
+            // При паузе или стопе: НЕ закрываем окна сразу.
+            // Даём macOS время восстановить оригинальные обои (~0.8с),
+            // пока SwiftUI анимация fade-out (0.4с) прикрывает переход.
+            // Без этой задержки пользователь видит остаточное изображение —
+            // размытый фон AURA без обложки, пока Finder не обновит обои.
+            scheduleDelayedClose()
         }
     }
     
+    /// Откладываем закрытие окон, чтобы оверлей прикрывал переход обоев
+    private func scheduleDelayedClose() {
+        // Если уже запланировано — не дублируем
+        guard delayedCloseTask == nil else { return }
+        delayedCloseTask = Task { @MainActor [weak self] in
+            // 0.8с: 0.4с на SwiftUI fade-out + 0.4с запас на замену обоев macOS
+            try? await Task.sleep(nanoseconds: 800_000_000)
+            guard !Task.isCancelled else { return }
+            self?.closeAll()
+            self?.delayedCloseTask = nil
+        }
+    }
+    
+    private func cancelDelayedClose() {
+        delayedCloseTask?.cancel()
+        delayedCloseTask = nil
+    }
+    
     func reconfigureWindows() {
+        cancelDelayedClose()
         closeAll()
         guard let music = musicController else { return }
         guard music.playing && music.activePlayerName != nil && (music.settings.edgeGlow || music.settings.animatedDesktopCover) else { return }
@@ -77,6 +104,7 @@ import SwiftUI
     }
     
     func closeAll() {
+        cancelDelayedClose()
         for window in windows {
             window.orderOut(nil)
         }

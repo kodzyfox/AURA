@@ -38,68 +38,13 @@ Whether you are listening through **Spotify**, **Apple Music**, or playing **loc
 
 ## Key Features
 
-### 1. Hardware-Accelerated Audio Reactivity (Apple Accelerate `vDSP`)
-- **1024-Point Local FFT Analysis**:
-  - Local playback routes through `AVAudioEngine` with a dedicated mixer tap capturing 32-bit floating-point PCM samples.
-  - Applies a vectorized Hann window (`vDSP_hann_window`) to eliminate spectral leakage before computing a 1024-point Fast Fourier Transform.
-  - Frequency bins are aggregated into **21 logarithmic equalizer bands** (20 Hz – 18 kHz) with instantaneous attack and smooth inertial decay.
-  - Sub-bass transient detector (`kickImpact`) tracks rhythmic punch (20–250 Hz) to drive pulsation and luminous expansion.
-- **Spotify Cloud Beat-Grid Synchronization**:
-  - Automatically queries Spotify Audio Analysis and Audio Features APIs to fetch exact beat timestamps, bar lines, track tempo (BPM), and acoustic energy.
-- **Adaptive Fallback Beat-Grid**:
-  - Provides mathematical tempo interpolation for external sources without direct API metadata.
-- **Transparent Signal Telemetry**:
-  - Displays real-time analyzer mode: `🟢 Local FFT (1024-pt)`, `🔵 Spotify Sync`, or `🟣 Smart Beat-Grid`.
-
-### 2. Perimeter Ambilight Edge Glow
-- **Screen-Edge Dynamic Illumination**:
-  - Emits an expansive neon glow along the four bezels of your Mac display.
-  - Light waves travel along the screen perimeter in lockstep with the song's BPM and measure phase.
-- **Intelligent Palette & Harmonic HSB Shifting**:
-  - High-speed hardware-accelerated k-means clustering samples vivid artwork colors.
-  - Dynamically synthesizes 4 harmonious color stops, guaranteeing deep saturation ($\ge 65\%$) and brightness ($\ge 80\%$) without desaturating or washing out into white glare.
-  - Dedicated selectable presets: *Cover (Adaptive Artwork)*, *Iridescent Rainbow*, *Aurora Borealis*, *Neon Sunset*, *Amber*, *Electric Cyan*, *Neon Magenta*, *Emerald*, and *Pure White*.
-- **Dock & Menu Bar Clearance**:
-  - Glow geometry dynamically expands past the macOS Menu Bar (32 pt) and Dock (~80 pt) for seamless immersion.
-
-### 3. Dynamic Multi-Monitor Wallpapers & Lock Screen
-- **Live Wallpaper Engine**:
-  - Generates ambient blurred desktop backgrounds from current album art via high-performance CoreImage filters.
-  - **Multi-Monitor Awareness**: Independently computes and sets wallpapers scaled to the exact native resolution and aspect ratio of each connected display (`CGDirectDisplayID`).
-  - **Automatic Restoration**: Memorizes original user wallpaper paths per monitor and gracefully restores them upon pausing or quitting.
-  - **Lock Screen Edge Glow**: Seamlessly renders edge illumination onto the lock screen wallpaper.
-
-### 4. Floating Desktop Overlay & Cover Modes
-- **Finder-Level Desktop Canvas**:
-  - Transparent borderless overlay window anchored at desktop level (`kCGDesktopWindowLevel`), positioned beneath desktop icons without obstructing window workflow.
-  - Visual modes: *Vinyl Disc (Smooth 33⅓ RPM rotation)*, *Floating 3D Card*, *Minimalist*, or *Perimeter Only*.
-- **Glass Mini-Player (Always-on-Top)**:
-  - Compact macOS floating window featuring real-time playback control, track progress, volume, and blurred vibrancy.
-- **Menu Bar Extra**:
-  - Status bar item with animated audio wave icon and popover controls.
-- **Fullscreen Immersive Cover (`CoverView`)**:
-  - Fullscreen display with automatic cursor hiding, blurred glass backdrop, and quick `Esc` dismissal.
-
-### 5. Notification Center Widget (`AuraWidget`)
-- Standalone macOS Notification Center extension built with **WidgetKit**.
-- Displays high-resolution album artwork, track information, artist metadata, and active player source directly on your lock screen and widget panel.
-
-### 6. Last.fm 2.0 Integration & macOS Keychain
-- Full Last.fm Scrobbler 2.0 compliance:
-  - Secure web authentication via official auth token.
-  - Immediate *Now Playing* status update upon song start.
-  - Strict scrobble compliance (logged only after 50% completion or 4 minutes of playback).
-  - Offline queueing with automatic flushing upon network reconnection.
-  - Quick Love / Unlove track toggle.
-- **Zero Insecure Storage**:
-  - API keys, session tokens, and secrets are encrypted in the system **macOS Keychain** (`kSecClassGenericPassword` with `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`).
-
-### 7. Performance & Energy Architecture
-- **Battery & Thermal Governance**:
-  - Uses `IOKit.ps` to detect power source changes; automatically dials down rendering load on battery.
-  - Multi-tier frame rate throttling: 60 FPS (Plugged-in High Performance) $\to$ 30 FPS (Balanced) $\to$ 15 FPS (Battery Saver).
-  - Dynamic render-scale downsampling (0.62x / 0.82x / 1.0x).
-  - Screen-locked detection (`com.apple.screenIsLocked`) suspends rendering loops to conserve GPU cycles.
+- **⚡ Hardware-Accelerated Audio Reactivity**: Real-time spectral analysis powered by Apple Accelerate `vDSP` FFT for local files, official Spotify Cloud Beat-Grid sync, and adaptive smart rhythm tracking.
+- **✨ Perimeter Ambilight Edge Glow**: Dynamic neon light waves along your screen bezels synchronized with track BPM and a vibrant 4-color palette extracted from album art.
+- **🖼️ Dynamic Multi-Monitor Wallpapers**: Generates atmospheric blurred desktop and lock screen backgrounds matching the playing track, with automatic restoration upon pause or quit.
+- **🪟 Desktop Overlay & Floating Mini-Player**: Borderless interactive desktop widget anchored beneath icons (spinning vinyl, floating 3D card), compact always-on-top glass mini-player, and menu bar extra.
+- **📱 macOS Notification Center Widget**: Standalone WidgetKit extension displaying large high-resolution artwork and playback telemetry on your lock screen and widget panel.
+- **🎵 Last.fm Scrobbling & Secure Keychain**: Official Last.fm 2.0 scrobbling with offline queuing and encrypted credential storage in macOS Keychain.
+- **🔋 High Performance & Battery Friendly**: 100% native Swift/SwiftUI with zero web wrappers or Electron; dynamic frame rate governance (60 $\to$ 30 $\to$ 15 FPS) to conserve MacBook battery.
 
 ---
 
@@ -158,36 +103,29 @@ native/Aura/
 
 ---
 
-## Building & Installation
+## Installation
 
-### Option 1: Quick Release Build (Recommended)
+### Option 1: Download Pre-built DMG (Recommended)
 
-Run the root build script:
+1. Download the latest **[Aura.dmg](https://github.com/kodzyfox/AURA/releases/latest/download/Aura.dmg)** from [Releases](https://github.com/kodzyfox/AURA/releases).
+2. Open the downloaded `Aura.dmg` installer.
+3. Drag **Aura** into your **Applications** folder.
+4. Launch Aura from Applications or Spotlight.
+5. When prompted, allow AppleEvents automation permissions for **Spotify** or **Apple Music** to enable playback sync and artwork detection.
+
+> [!TIP]
+> **First Launch on macOS**: If macOS Gatekeeper displays a warning regarding an unidentified developer, right-click `Aura.app` $\to$ select **Open**, or navigate to **System Settings** $\to$ **Privacy & Security** and click **Open Anyway**.
+
+### Option 2: Build from Source
+
+Requirements: macOS 14+ on Apple Silicon, Xcode Command Line Tools (`xcode-select --install`).
 
 ```bash
+git clone https://github.com/kodzyfox/AURA.git
+cd AURA
 ./build.sh
 ```
-
-This will automatically:
-1. Compile the main application in release mode (`swift build -c release`).
-2. Build the `AuraWidget.appex` Notification Center extension with `WidgetKit`.
-3. Assemble the `dist/Aura.app` bundle and apply ad-hoc codesigning with proper entitlements.
-4. Generate a clean distribution disk image (`dist/Aura.dmg`).
-
-To install, simply drag `Aura.app` to your `/Applications` directory:
-
-```bash
-cp -R native/Aura/dist/Aura.app /Applications/
-open /Applications/Aura.app
-```
-
-### Option 2: Swift Package Manager CLI
-
-```bash
-cd native/Aura
-swift build -c release
-.build/release/Aura
-```
+The compiled application and DMG will be ready in `native/Aura/dist/`.
 
 ---
 
@@ -219,67 +157,13 @@ Aura поддерживает **Spotify**, **Apple Music** и **локальны
 
 ## Ключевые возможности
 
-### 1. Честная аппаратная аудио-реактивность (Apple Accelerate `vDSP`)
-- **1024-точечный спектральный анализ Local FFT**:
-  - При воспроизведении локальных треков декодирование происходит через `AVAudioEngine`.
-  - На tap-шину микшера поступают непрерывные блоки по 1024 float PCM-семплов.
-  - Векторное окно Ханна (`vDSP_hann_window`) предотвращает спектральное растекание, после чего рассчитывается быстрое преобразование Фурье (FFT).
-  - Спектр разбивается на **21 логарифмическую полосу эквалайзера** (20 Гц — 18 кГц) с мгновенной реакцией на атаку и плавным затуханием.
-  - Детектор кика (`kickImpact`) фиксирует всплески в диапазоне суббаса (20–250 Гц) и ритмично пульсирует свечением в такт бочке.
-- **Spotify Cloud Beat-Grid Sync**:
-  - При прослушивании через Spotify запрашиваются официальные данные Audio Analysis / Audio Features: точные таймкоды долей, BPM и плотность звука.
-- **Адаптивный Smart Beat-Grid**:
-  - Квантованная математическая сетка ритма для Apple Music и внешних источников.
-- **Прозрачный статус**:
-  - Под эквалайзером отображается текущий активный анализатор: `🟢 Local FFT (1024-pt)`, `🔵 Spotify Sync` или `🟣 Smart Beat-Grid`.
-
-### 2. Рассеянное свечение по краям экрана (Ambilight Edge Glow)
-- **Свечение по периметру дисплея**:
-  - Охватывает все 4 границы экрана и плавно переливается в такт темпу музыки (BPM).
-- **Многоцветная палитра и гармонические HSB-переливы**:
-  - Аппаратно-ускоренный k-means извлекает ключевые сочные цвета из обложки альбома.
-  - Алгоритм синтезирует градиент из 4 гармонических оттенков с гарантией высокой насыщенности ($\ge 65\%$) и яркости ($\ge 80\%$), исключая вымывание цвета в белесый свет.
-  - Готовые пресеты: *Обложка (адаптивный)*, *Радужный спектр*, *Северное сияние*, *Неоновый закат*, *Янтарь*, *Неон циан*, *Пурпур*, *Изумруд*, *Белый*.
-- **Коррекция под интерфейс macOS**:
-  - Границы свечения автоматически перекрывают высоту Menu Bar (32 pt) и системного Dock (~80 pt).
-
-### 3. Динамические обои и экран блокировки
-- **Генератор размытых обоев**:
-  - На основе обложки текущего трека CoreImage генерирует кинематографичные обои рабочего стола.
-  - **Мультимониторность**: обои индивидуально рассчитываются под точное разрешение и соотношение сторон каждого активного дисплея (`CGDirectDisplayID`).
-  - **Автоматическое восстановление**: при остановке музыки или выходе из приложения Aura бесследно возвращает оригинальные обои пользователя на всех мониторах.
-  - **Свечение на экране блокировки**: Ambilight-подсветка проецируется и на экран блокировки macOS.
-
-### 4. Оверлей рабочего стола и режимы обложки
-- **Оверлей на уровне Finder**:
-  - Полупрозрачный безрамочный холст, закреплённый на уровне рабочего стола (`kCGDesktopWindowLevel`) прямо под иконками Finder.
-  - Стили отображения: *Виниловая пластинка (вращение 33⅓ об/мин)*, *Парящая 3D-обложка*, *Минималистичный*, *Только подсветка периметра*.
-- **Плавающий стеклянный мини-плеер**:
-  - Компактный плеер поверх всех окон (`.floating`, Always-on-Top) со стеклянным размытием и полным контролем трека.
-- **Строка меню (Menu Bar Extra)**:
-  - Иконка аудиоволны в статус-баре macOS с быстрым доступом к управлению музыкой.
-- **Полноэкранный режим (`CoverView`)**:
-  - Атмосферный полноэкранный просмотр с автоматическим скрытием курсора и выходом по `Esc`.
-
-### 5. Виджет для Центра уведомлений (`AuraWidget`)
-- Расширение на базе **WidgetKit**.
-- Отображает крупную обложку, название трека, исполнителя и статус источника прямо на экране блокировки и в боковой панели виджетов macOS.
-
-### 6. Интеграция с Last.fm и связка ключей macOS Keychain
-- Полное соответствие официальному протоколу Last.fm 2.0:
-  - Безопасная веб-авторизация по одноразовому токену.
-  - Мгновенная отправка *Now Playing* в начале песни.
-  - Корректный скробблинг (при прослушивании $\ge 50\%$ трека или 4 минут).
-  - Офлайн-очередь с автоматической отправкой при появлении интернета.
-  - Отметка трека «Любимый» (Love / Unlove).
-- **Безопасность**:
-  - Токены сессий и пароли шифруются в системной связке ключей **macOS Keychain** (`kSecClassGenericPassword`), исключая небезопасное хранение в открытом виде.
-
-### 7. Архитектура энергосбережения
-- **Телеметрия IOKit**:
-  - Определение питания от аккумулятора и автоматическое переключение на энергосберегающие профили.
-  - Динамическое ограничение частоты кадров: 60 FPS (сеть) $\to$ 30 FPS (баланс) $\to$ 15 FPS (аккумулятор).
-  - При блокировке экрана (`com.apple.screenIsLocked`) циклы отрисовки останавливаются.
+- **⚡ Аппаратная аудио-реактивность**: Мгновенный спектральный анализ звука через Apple Accelerate `vDSP` FFT (для локальных FLAC/WAV/MP3), синхронизация с ритмом Spotify Beat-Grid и адаптивная сетка темпа.
+- **✨ Периметральное Ambilight-свечение**: Динамическая неоновая подсветка краев монитора в такт музыке с интеллектуальной палитрой из цветов текущей обложки.
+- **🖼️ Динамические обои для всех мониторов**: Автоматическая генерация кинематографичных размытых обоев под цвет альбома с бесследным возвратом ваших стандартных обоев при паузе.
+- **🪟 Оверлей рабочего стола и мини-плеер**: Интерактивный виджет на рабочем столе под иконками (крутящийся винил, парящая 3D-обложка), компактный плавающий стеклянный плеер поверх всех окон и иконка в строке меню.
+- **📱 Виджет для Центра уведомлений**: Нативное расширение на WidgetKit с крупной обложкой и статусом трека на панели виджетов и экране блокировки.
+- **🎵 Скробблинг Last.fm и связка ключей**: Поддержка официального протокола Last.fm с офлайн-очередью и шифрованием учетных данных в системной связке ключей macOS Keychain.
+- **🔋 Максимальная энергоэффективность**: 100% нативный Swift/SwiftUI без веб-обёрток и Electron; динамическая регулировка FPS для экономии заряда аккумулятора MacBook.
 
 ---
 
@@ -308,28 +192,29 @@ Aura поддерживает **Spotify**, **Apple Music** и **локальны
 
 ---
 
-## Сборка и установка
+## Инструкция по установке
 
-### Быстрая сборка дистрибутива (Рекомендуется)
+### Способ 1: Готовый образ DMG (Рекомендуется)
 
-Запустите скрипт сборки в корне репозитория:
+1. Скачайте свежий установочный образ **[Aura.dmg](https://github.com/kodzyfox/AURA/releases/latest/download/Aura.dmg)** со страницы [Releases](https://github.com/kodzyfox/AURA/releases).
+2. Откройте загруженный файл `Aura.dmg`.
+3. Перетащите иконку **Aura** в папку **«Программы» (Applications)**.
+4. Запустите приложение через Spotlight или Launchpad.
+5. При первом запуске разрешите управление через AppleEvents для **Spotify** или **Apple Music** для синхронизации музыки и обложек.
+
+> [!TIP]
+> **Первый запуск в macOS**: Если система сообщает о неидентифицированном разработчике, нажмите по приложению правой кнопкой мыши $\to$ **Открыть**, либо откройте **Системные настройки** $\to$ **Конфиденциальность и безопасность** и нажмите **«Подтвердить вход» / «Открыть»**.
+
+### Способ 2: Сборка из исходников
+
+Требования: macOS 14+ на Apple Silicon, Xcode Command Line Tools (`xcode-select --install`).
 
 ```bash
+git clone https://github.com/kodzyfox/AURA.git
+cd AURA
 ./build.sh
 ```
-
-Скрипт автоматически:
-1. Выполнит сборку релизного бинарного файла (`swift build -c release`).
-2. Соберет расширение виджета `AuraWidget.appex` с поддержкой `WidgetKit`.
-3. Упакует бандл `dist/Aura.app` с ad-hoc цифровой подписью и entitlements.
-4. Создаст брендированный образ диска `dist/Aura.dmg`.
-
-Для установки перенесите приложение в папку «Программы»:
-
-```bash
-cp -R native/Aura/dist/Aura.app /Applications/
-open /Applications/Aura.app
-```
+Собранное приложение и установочный образ появятся в папке `native/Aura/dist/`.
 
 ---
 

@@ -56,7 +56,7 @@ native/Aura/
 ├── Info.plist                       # Bundle metadata, Apple Events usage descriptions, strict TLS
 ├── Aura.entitlements                # Sandboxed entitlements & AppleScript automation access
 ├── build.sh                         # Multi-target release builder, codesigning & DMG packager
-├── Resources/                       # Icons, desert fallback art, DMG background
+├── Resources/                       # Icons, AURA cover fallback art, DMG background
 └── Sources/
     ├── AuraWidget/                  # macOS Notification Center Extension (WidgetKit)
     │   ├── AuraWidget.swift         # Widget timeline provider, SwiftUI layout & app group sync

@@ -189,7 +189,9 @@ import SwiftUI
     ]
 
     var fallback: NSImage? {
-        Bundle.main.url(forResource: "desert", withExtension: "jpg").flatMap { NSImage(contentsOf: $0) }
+        Bundle.main.url(forResource: "aura_cover", withExtension: "jpg").flatMap { NSImage(contentsOf: $0) }
+            ?? Bundle.main.url(forResource: "desert", withExtension: "jpg").flatMap { NSImage(contentsOf: $0) }
+            ?? Bundle.main.url(forResource: "AppIcon", withExtension: "png").flatMap { NSImage(contentsOf: $0) }
     }
 
     var currentTrackKey: String {

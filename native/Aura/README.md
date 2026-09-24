@@ -16,7 +16,7 @@ native/Aura/
 ├── Aura.entitlements           # Разрешения com.apple.security.automation.apple-events
 ├── build.sh                    # Скрипт сборки release-бандла, виджета и dist/Aura.dmg
 ├── Resources/
-│   └── desert.jpg              # Резервная обложка (песчаные дюны)
+│   └── aura_cover.jpg          # Фирменная резервная обложка Aura
 └── Sources/
     ├── AuraWidget/             # Виджет для Центра уведомлений macOS (WidgetKit)
     │   ├── AuraWidget.swift    # Таймлайн виджета, отображение трека, обложки и статуса

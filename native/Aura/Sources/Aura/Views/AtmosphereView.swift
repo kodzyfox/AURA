@@ -50,7 +50,7 @@ struct AtmosphereView: View {
         ZStack {
             // 1. Размытый фоновый артворк
             AlbumImage(image: music.artwork ?? music.fallback)
-                .blur(radius: music.settings.blurRadius)
+                .blur(radius: max(2.0, music.settings.blurRadius))
                 .scaleEffect(1.15 + (isReactive ? beatImpact * 0.02 : 0.0))
                 .clipped()
             
@@ -58,7 +58,7 @@ struct AtmosphereView: View {
             paletteOverlay(geo: geo)
             
             // 3. Радиальное рассеянное свечение с деликатной пульсацией в такт битам
-            if music.settings.effect != .minimal {
+            if music.settings.effect != .minimal && music.settings.palette != 8 {
                 let glowRadius = geo.size.width * 0.55 * music.settings.glowScale * (1.0 + (isReactive ? beatImpact * 0.15 : 0.0))
                 RadialGradient(
                     colors: [activeGlowColor.opacity(dynamicGlow * 0.65), .clear],
@@ -153,7 +153,7 @@ struct AtmosphereView: View {
             AlbumImage(image: music.artwork ?? music.fallback)
                 .scaledToFill()
                 .frame(width: geo.size.width, height: geo.size.height)
-                .blur(radius: music.settings.blurRadius)
+                .blur(radius: max(2.0, music.settings.blurRadius))
                 .scaleEffect(1.08)
                 .clipped()
             
@@ -162,7 +162,7 @@ struct AtmosphereView: View {
                 .opacity(0.35)
             
             // 3. Атмосферный визуальный эффект из «Выберите настроение» на весь экран
-            if music.settings.effect != .minimal {
+            if music.settings.effect != .minimal && music.settings.palette != 8 {
                 let glowRadius = geo.size.width * 0.55 * music.settings.glowScale * (1.0 + (isReactive ? beatImpact * 0.15 : 0.0))
                 RadialGradient(
                     colors: [activeGlowColor.opacity(dynamicGlow * 0.60), .clear],
@@ -321,26 +321,28 @@ struct AtmosphereView: View {
         ZStack {
             switch music.settings.effect {
             case .neonPulse:
-                neonPulseView(t: t, size: size * 0.45, beatImpact: beatImpact)
+                NeonPulseVisualizerView(t: t, size: size * 0.45, colors: artworkGlowColors, beatImpact: beatImpact, speed: music.settings.speed, glowScale: music.settings.glowScale, intensity: music.settings.intensity)
             case .orbit:
-                orbitView(t: t, size: size * 0.55)
+                OrbitVisualizerView(t: t, size: size * 0.55, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
             case .waves:
-                wavesView(t: t, size: size * 0.65)
+                WavesVisualizerView(t: t, size: size * 0.65, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
             case .prism:
-                prismView(t: t, size: size * 0.5)
+                PrismVisualizerView(t: t, size: size * 0.55, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
             case .aurora:
-                auroraView(t: t, size: size * 0.75)
+                AuroraVisualizerView(t: t, size: size * 0.75, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
             case .cosmicBreath:
-                cosmicBreathView(t: t, size: size * 0.55)
+                CosmicBreathVisualizerView(t: t, size: size * 0.55, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
             case .aura:
-                auraGlowView(t: t, size: size * 0.55, beatImpact: beatImpact)
+                AuraVisualizerView(t: t, size: size * 0.55, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity, glowScale: music.settings.glowScale)
             case .nebula:
-                nebulaView(t: t, size: size * 0.55, beatImpact: beatImpact)
+                FluidNebulaVisualizerView(t: t, size: size * 0.55, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
             case .cyberGrid:
-                cyberGridView(t: t, size: size * 0.65, beatImpact: beatImpact)
+                CyberGridVisualizerView(t: t, size: size * 0.65, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
             case .supernova:
-                supernovaView(t: t, size: size * 0.55, beatImpact: beatImpact)
-            case .vinyl, .minimal:
+                SupernovaVisualizerView(t: t, size: size * 0.55, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
+            case .minimal:
+                MinimalVisualizerView(size: size * 0.5)
+            case .vinyl, .cd:
                 EmptyView()
             }
         }
@@ -375,7 +377,7 @@ struct AtmosphereView: View {
             AlbumImage(image: music.artwork ?? music.fallback)
                 .scaledToFill()
                 .frame(width: geo.size.width, height: geo.size.height)
-                .blur(radius: max(32, music.settings.blurRadius))
+                .blur(radius: max(2.0, music.settings.blurRadius))
                 .opacity(0.70)
                 .clipped()
             
@@ -384,19 +386,25 @@ struct AtmosphereView: View {
                 .opacity(0.45)
             
             // 3. Деликатный мягкий фоновый свет строго за обложкой
-            RadialGradient(
-                colors: [activeGlowColor.opacity(dynamicGlow * 0.45), .clear],
-                center: .center,
-                startRadius: 15,
-                endRadius: artSize * 1.4
-            )
-            .scaleEffect(pulseScale)
-            .blendMode(.screen)
+            if music.settings.palette != 8 {
+                RadialGradient(
+                    colors: [activeGlowColor.opacity(dynamicGlow * 0.45), .clear],
+                    center: .center,
+                    startRadius: 15,
+                    endRadius: artSize * 1.4
+                )
+                .scaleEffect(pulseScale)
+                .blendMode(.screen)
+            }
             
             // 4. Парящая чистая обложка по центру (без визуализаторов и шума)
             VStack(spacing: 14) {
                 if music.settings.effect == .vinyl {
-                    vinylView(t: t, size: artSize, beatImpact: beatImpact, beatPhase: beatPhase)
+                    VinylVisualizerView(t: t, size: artSize, artwork: music.artwork ?? music.fallback, beatImpact: beatImpact, beatPhase: beatPhase, isPlaying: music.playing, reduceMotion: reduceMotion)
+                        .scaleEffect(x: motion.scaleX, y: motion.scaleY)
+                        .offset(y: motion.offsetY)
+                } else if music.settings.effect == .cd {
+                    CDVisualizerView(t: t, size: artSize, artwork: music.artwork ?? music.fallback, beatImpact: beatImpact, isPlaying: music.playing, reduceMotion: reduceMotion)
                         .scaleEffect(x: motion.scaleX, y: motion.scaleY)
                         .offset(y: motion.offsetY)
                 } else {
@@ -483,30 +491,32 @@ struct AtmosphereView: View {
                 // Фоновые эффекты строго центрированы относительно обложки
                 switch music.settings.effect {
                 case .neonPulse:
-                    neonPulseView(t: t, size: artSize, beatImpact: beatImpact)
+                    NeonPulseVisualizerView(t: t, size: artSize, colors: artworkGlowColors, beatImpact: beatImpact, speed: music.settings.speed, glowScale: music.settings.glowScale, intensity: music.settings.intensity)
                 case .orbit:
-                    orbitView(t: t, size: artSize)
+                    OrbitVisualizerView(t: t, size: artSize, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
                 case .waves:
-                    wavesView(t: t, size: artSize)
+                    WavesVisualizerView(t: t, size: artSize, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
                 case .prism:
-                    prismView(t: t, size: artSize)
+                    PrismVisualizerView(t: t, size: artSize, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
                 case .aurora:
-                    auroraView(t: t, size: artSize)
+                    AuroraVisualizerView(t: t, size: artSize, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
                 case .cosmicBreath:
-                    cosmicBreathView(t: t, size: artSize)
+                    CosmicBreathVisualizerView(t: t, size: artSize, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
                 case .aura:
-                    auraGlowView(t: t, size: artSize, beatImpact: beatImpact)
+                    AuraVisualizerView(t: t, size: artSize, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity, glowScale: music.settings.glowScale)
                 case .nebula:
-                    nebulaView(t: t, size: artSize, beatImpact: beatImpact)
+                    FluidNebulaVisualizerView(t: t, size: artSize, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
                 case .cyberGrid:
-                    cyberGridView(t: t, size: artSize, beatImpact: beatImpact)
+                    CyberGridVisualizerView(t: t, size: artSize, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
                 case .supernova:
-                    supernovaView(t: t, size: artSize, beatImpact: beatImpact)
-                case .vinyl, .minimal:
+                    SupernovaVisualizerView(t: t, size: artSize, colors: artworkGlowColors, beatImpact: beatImpact, intensity: music.settings.intensity)
+                case .minimal:
+                    MinimalVisualizerView(size: artSize)
+                case .vinyl, .cd:
                     EmptyView()
                 }
                 
-                // Сама обложка или вращающийся виниловый диск
+                // Сама обложка, вращающийся виниловый диск или компакт-диск
                 let motion = music.settings.computeCoverMotion(
                     t: t,
                     beatImpact: beatImpact,
@@ -514,7 +524,11 @@ struct AtmosphereView: View {
                     isPlaying: music.playing
                 )
                 if music.settings.effect == .vinyl {
-                    vinylView(t: t, size: artSize, beatImpact: beatImpact, beatPhase: beatPhase)
+                    VinylVisualizerView(t: t, size: artSize, artwork: music.artwork ?? music.fallback, beatImpact: beatImpact, beatPhase: beatPhase, isPlaying: music.playing, reduceMotion: reduceMotion)
+                        .scaleEffect(x: motion.scaleX, y: motion.scaleY)
+                        .offset(y: motion.offsetY)
+                } else if music.settings.effect == .cd {
+                    CDVisualizerView(t: t, size: artSize, artwork: music.artwork ?? music.fallback, beatImpact: beatImpact, isPlaying: music.playing, reduceMotion: reduceMotion)
                         .scaleEffect(x: motion.scaleX, y: motion.scaleY)
                         .offset(y: motion.offsetY)
                 } else {
@@ -608,6 +622,8 @@ struct AtmosphereView: View {
             return Color(red: 0.75, green: 0.50, blue: 1.0)
         case 7: // Ночной космос
             return Color(red: 0.45, green: 0.60, blue: 0.90)
+        case 8: // Без свечения
+            return .clear
         default: // Обложка
             return music.artworkColor ?? Theme.accent
         }
@@ -692,420 +708,13 @@ struct AtmosphereView: View {
         case 7: // Ночной космос
             Color.black.opacity(0.55)
             Color(red: 0.10, green: 0.15, blue: 0.35).opacity(0.25)
+        case 8: // Без свечения — делаем задний фон на 25% темнее
+            Color.black.opacity(0.25)
         default: // Тёплая (динамическая из обложки)
             if let artColor = music.artworkColor {
                 artColor.opacity(0.22).blendMode(.overlay)
             }
             Color.black.opacity(0.22)
-        }
-    }
-    
-    // MARK: - Эффекты оформления
-    
-    // Эффект: Волны (Waves)
-    @ViewBuilder
-    private func wavesView(t: Double, size: CGFloat) -> some View {
-        let (c1, c2, c3) = artworkGlowColors
-        let cols = [c1, c2, c3, c1, c2, c3]
-        ZStack {
-            ForEach(0..<6, id: \.self) { i in
-                Ellipse()
-                    .stroke(cols[i].opacity(music.settings.intensity * (0.30 - Double(i) * 0.03)), lineWidth: 1.3)
-                    .frame(
-                        width: size * (1.2 + Double(i) * 0.26),
-                        height: size * (0.8 + Double(i) * 0.20)
-                    )
-                    .offset(y: sin(t * 2.0 + Double(i) * 0.6) * 10)
-            }
-        }
-    }
-
-    
-    // Эффект: Орбита (Orbit)
-    @ViewBuilder
-    private func orbitView(t: Double, size: CGFloat) -> some View {
-        let (c1, c2, c3) = artworkGlowColors
-        let orbitColors = [c1, c2, c3]
-        ZStack {
-            ForEach(0..<3, id: \.self) { i in
-                Circle()
-                    .stroke(orbitColors[i].opacity(0.32 * music.settings.intensity), lineWidth: 1.2)
-                    .overlay(alignment: .top) {
-                        Circle()
-                            .fill(orbitColors[i].opacity(0.9))
-                            .frame(width: 7, height: 7)
-                            .shadow(color: orbitColors[i], radius: 5)
-                    }
-                    .frame(width: size * (1.45 + Double(i) * 0.35), height: size * (1.45 + Double(i) * 0.35))
-                    .rotation3DEffect(.degrees(60), axis: (x: 1, y: 0, z: 0))
-                    .rotationEffect(.degrees(t * 24 + Double(i) * 55))
-            }
-        }
-    }
-
-    
-    // Эффект: Северное сияние (Aurora Borealis)
-    @ViewBuilder
-    private func auroraView(t: Double, size: CGFloat) -> some View {
-        let (c1, c2, c3) = artworkGlowColors
-        ZStack {
-            ForEach(0..<3, id: \.self) { i in
-                LinearGradient(
-                    colors: [
-                        c1.opacity(0.38 * music.settings.intensity),
-                        c2.opacity(0.28 * music.settings.intensity),
-                        c3.opacity(0.20 * music.settings.intensity),
-                        .clear
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(width: size * 2.4, height: size * 1.5)
-                .offset(x: sin(t * 0.8 + Double(i) * 1.5) * 35, y: cos(t * 0.6 + Double(i)) * 18)
-                .rotationEffect(.degrees(Double(i) * 8 - 4 + sin(t * 0.5) * 5))
-                .blur(radius: 32)
-                .blendMode(.screen)
-            }
-        }
-    }
-
-    
-    // Эффект: Виниловая пластинка (Vinyl Record)
-    @ViewBuilder
-    private func vinylView(t: Double, size: CGFloat, beatImpact: Double, beatPhase: Double) -> some View {
-        let vinylSize = size * 1.18
-        ZStack {
-            // Черный виниловый диск
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color(white: 0.12),
-                            Color(white: 0.05),
-                            Color(white: 0.15),
-                            Color(white: 0.04)
-                        ],
-                        center: .center,
-                        startRadius: 15,
-                        endRadius: vinylSize * 0.5
-                    )
-                )
-                .frame(width: vinylSize, height: vinylSize)
-                .shadow(color: .black.opacity(0.55), radius: 24, y: 12)
-            
-            // Звуковые бороздки
-            ForEach(1..<8, id: \.self) { ring in
-                Circle()
-                    .stroke(Color.white.opacity(0.06), lineWidth: 1)
-                    .frame(width: vinylSize * (0.35 + Double(ring) * 0.08))
-            }
-            
-            // Блик света на виниле
-            Circle()
-                .stroke(
-                    AngularGradient(
-                        colors: [.clear, .white.opacity(0.14), .clear, .white.opacity(0.14), .clear],
-                        center: .center
-                    ),
-                    lineWidth: vinylSize * 0.35
-                )
-                .frame(width: vinylSize * 0.65, height: vinylSize * 0.65)
-            
-            // Центральное «яблоко» пластинки с обложкой
-            AlbumImage(image: music.artwork ?? music.fallback)
-                .frame(width: vinylSize * 0.38, height: vinylSize * 0.38)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 1.5))
-            
-            // Центральное отверстие
-            Circle()
-                .fill(Color.black)
-                .frame(width: 14, height: 14)
-                .overlay(Circle().stroke(Color.white.opacity(0.4), lineWidth: 1))
-        }
-        .rotationEffect(.degrees(reduceMotion ? 0 : t * 36))
-        .scaleEffect(music.settings.computeCoverScale(
-            t: t,
-            beatImpact: beatImpact,
-            beatPhase: beatPhase,
-            isPlaying: music.playing
-        ))
-    }
-    
-    // Эффект: Неоновый пульс (Cyber Neon Pulse)
-    @ViewBuilder
-    private func neonPulseView(t: Double, size: CGFloat, beatImpact: Double = 0.0) -> some View {
-        let (c1, c2, _) = artworkGlowColors
-        ZStack {
-            ForEach(0..<4, id: \.self) { i in
-                let phase = Double(i) * 0.25
-                let progress = (t * (0.6 + music.settings.speed * 0.8) + phase).truncatingRemainder(dividingBy: 1.0)
-                let p = progress < 0 ? progress + 1.0 : progress
-                let scale = 1.0 + p * 0.70 * music.settings.glowScale + (beatImpact * 0.12)
-                let alpha = max(0, 1.0 - p) * music.settings.intensity * (0.75 + beatImpact * 0.25)
-                
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                c1.opacity(alpha),
-                                c2.opacity(alpha)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 2.2 + (beatImpact * 1.0)
-                    )
-                    .frame(width: size * scale, height: size * scale)
-                    .shadow(color: c1.opacity(alpha * 0.8), radius: 14 + (beatImpact * 8))
-            }
-        }
-    }
-
-    
-    // Эффект: Призма (Chromatic Dispersion Prism)
-    @ViewBuilder
-    private func prismView(t: Double, size: CGFloat) -> some View {
-        let (c1, c2, c3) = artworkGlowColors
-        ZStack {
-            ForEach(0..<3, id: \.self) { i in
-                let angle = t * 18.0 + Double(i) * 55.0
-                AngularGradient(
-                    colors: [
-                        c1.opacity(0.32 * music.settings.intensity),
-                        c2.opacity(0.32 * music.settings.intensity),
-                        c3.opacity(0.22 * music.settings.intensity),
-                        .clear
-                    ],
-                    center: .center,
-                    startAngle: .degrees(angle),
-                    endAngle: .degrees(angle + 180)
-                )
-                .frame(width: size * 2.2, height: size * 2.2)
-                .blur(radius: 35)
-                .blendMode(.screen)
-            }
-        }
-    }
-
-    
-    // Эффект: Дыхание космоса (Cosmic Breath Nebula)
-    @ViewBuilder
-    private func cosmicBreathView(t: Double, size: CGFloat) -> some View {
-        let (c1, c2, _) = artworkGlowColors
-        ZStack {
-            RadialGradient(
-                colors: [
-                    c1.opacity(0.40 * music.settings.intensity),
-                    c2.opacity(0.30 * music.settings.intensity),
-                    .clear
-                ],
-                center: .center,
-                startRadius: 15,
-                endRadius: size * 1.3
-            )
-            .frame(width: size * 2.2, height: size * 2.2)
-            .scaleEffect(0.9 + abs(sin(t * 0.8)) * 0.25)
-            .blur(radius: 28)
-            .blendMode(.screen)
-        }
-    }
-
-    
-    // Эффект: Аура (Aura Radiant Glow)
-    @ViewBuilder
-    private func auraGlowView(t: Double, size: CGFloat, beatImpact: Double) -> some View {
-        let (c1, c2, c3) = artworkGlowColors
-        ZStack {
-            // Первый слой — основной доминантный цвет
-            RadialGradient(
-                colors: [c1.opacity(0.55 * music.settings.intensity), c1.opacity(0.20), .clear],
-                center: .center,
-                startRadius: 20,
-                endRadius: size * 1.2 * music.settings.glowScale
-            )
-            .frame(width: size * 2.2, height: size * 2.2)
-            .scaleEffect(1.0 + (music.settings.audioReactive ? beatImpact * 0.15 : sin(t * 1.5) * 0.10))
-            .blendMode(.screen)
-            
-            // Второй слой — акцентный цвет смещён и пульсирует
-            RadialGradient(
-                colors: [c2.opacity(0.40 * music.settings.intensity), .clear],
-                center: .center,
-                startRadius: 15,
-                endRadius: size * 0.9 * music.settings.glowScale
-            )
-            .frame(width: size * 1.8, height: size * 1.8)
-            .offset(x: sin(t * 0.7) * size * 0.12, y: cos(t * 0.5) * size * 0.10)
-            .scaleEffect(1.0 + (music.settings.audioReactive ? beatImpact * 0.12 : sin(t * 2.1 + 1.0) * 0.08))
-            .blendMode(.screen)
-            
-            // Третий слой — тихий оттенок для глубины
-            RadialGradient(
-                colors: [c3.opacity(0.28 * music.settings.intensity), .clear],
-                center: .center,
-                startRadius: 10,
-                endRadius: size * 0.7 * music.settings.glowScale
-            )
-            .frame(width: size * 1.5, height: size * 1.5)
-            .offset(x: cos(t * 0.9 + 0.8) * size * 0.08, y: sin(t * 0.65 + 0.5) * size * 0.09)
-            .blendMode(.screen)
-        }
-    }
-    
-    // MARK: - Новые визуальные эффекты
-    
-    // Эффект: Жидкая туманность (Fluid Nebula)
-    @ViewBuilder
-    private func nebulaView(t: Double, size: CGFloat, beatImpact: Double) -> some View {
-        let (c1, c2, c3) = artworkGlowColors
-        let orbColors = [c1, c2, c3, c1]
-        
-        ZStack {
-            // Центральное светящееся плазменное кольцо
-            Circle()
-                .stroke(
-                    AngularGradient(
-                        colors: [c1, c2, c3, c1],
-                        center: .center,
-                        startAngle: .degrees(t * 40),
-                        endAngle: .degrees(t * 40 + 360)
-                    ),
-                    lineWidth: max(4.0, 12.0 * CGFloat(beatImpact))
-                )
-                .frame(width: size * 1.35, height: size * 1.35)
-                .blur(radius: 14)
-                .scaleEffect(1.0 + CGFloat(beatImpact * 0.16))
-                .blendMode(.screen)
-            
-            // 4 органические переливающиеся сферы туманности
-            ForEach(0..<4, id: \.self) { i in
-                let angle = t * (0.6 + Double(i) * 0.2) + Double(i) * (.pi / 2.0)
-                let radius = size * (0.55 + Double(i) * 0.12)
-                let x = cos(angle) * radius
-                let y = sin(angle * 1.3) * (radius * 0.85)
-                let orbSize = size * (0.75 + Double(i) * 0.15)
-                
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                orbColors[i].opacity(0.65 * music.settings.intensity),
-                                orbColors[i].opacity(0.25 * music.settings.intensity),
-                                .clear
-                            ],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: orbSize / 2.0
-                        )
-                    )
-                    .frame(width: orbSize, height: orbSize)
-                    .offset(x: x, y: y)
-                    .blur(radius: 22)
-                    .scaleEffect(1.0 + CGFloat(beatImpact * 0.22))
-                    .blendMode(.screen)
-            }
-        }
-    }
-    
-    // Эффект: Кибер-сетка (Cyber Grid)
-    @ViewBuilder
-    private func cyberGridView(t: Double, size: CGFloat, beatImpact: Double) -> some View {
-        let (c1, c2, _) = artworkGlowColors
-        let gridWidth = size * 2.2
-        let gridHeight = size * 1.4
-        
-        ZStack {
-            // Неоновая линия горизонта с сиянием
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        colors: [.clear, c1.opacity(0.85 * music.settings.intensity), .clear],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .frame(width: gridWidth, height: 2.5 + CGFloat(beatImpact * 3.0))
-                .offset(y: size * 0.38)
-                .blur(radius: 2)
-                .shadow(color: c1, radius: 8)
-            
-            // 3D-плоскость сетки горизонта
-            ZStack {
-                // Горизонтальные бегущие линии (перспектива)
-                ForEach(0..<7, id: \.self) { i in
-                    let step = (Double(i) / 7.0 + t * 0.4).truncatingRemainder(dividingBy: 1.0)
-                    let yPos = pow(step, 2.0) * (gridHeight * 0.75)
-                    let lineOpacity = (1.0 - step) * 0.45 * music.settings.intensity
-                    
-                    Rectangle()
-                        .fill(c2.opacity(lineOpacity))
-                        .frame(width: gridWidth * (0.3 + step * 0.7), height: 1.2)
-                        .offset(y: yPos)
-                }
-                
-                // Продольные лучи сетки, уходящие в глубину
-                ForEach(-4...4, id: \.self) { i in
-                    let xOffset = CGFloat(i) * (gridWidth * 0.10)
-                    Path { path in
-                        path.move(to: CGPoint(x: gridWidth / 2.0 + xOffset * 0.2, y: 0))
-                        path.addLine(to: CGPoint(x: gridWidth / 2.0 + xOffset * 1.4, y: gridHeight * 0.75))
-                    }
-                    .stroke(c1.opacity(0.28 * music.settings.intensity), lineWidth: 1.0)
-                    .frame(width: gridWidth, height: gridHeight * 0.75)
-                }
-            }
-            .frame(width: gridWidth, height: gridHeight * 0.75)
-            .offset(y: size * 0.40)
-            .rotation3DEffect(.degrees(65), axis: (x: 1, y: 0, z: 0))
-        }
-    }
-    
-    // Эффект: Сверхновая (Supernova)
-    @ViewBuilder
-    private func supernovaView(t: Double, size: CGFloat, beatImpact: Double) -> some View {
-        let (c1, c2, c3) = artworkGlowColors
-        let burstScale = 1.0 + CGFloat(beatImpact * 0.55)
-        
-        ZStack {
-            // Вспышка взрывной ударной волны при ударе бочки
-            Circle()
-                .stroke(
-                    c1.opacity((0.25 + beatImpact * 0.65) * music.settings.intensity),
-                    lineWidth: 1.5 + CGFloat(beatImpact * 2.5)
-                )
-                .frame(width: size * 1.55 * burstScale, height: size * 1.55 * burstScale)
-                .blur(radius: 3)
-                .shadow(color: c1.opacity(0.8), radius: 10)
-            
-            // Вторичное кольцо световых частиц
-            Circle()
-                .stroke(
-                    c2.opacity(0.35 * music.settings.intensity),
-                    style: StrokeStyle(lineWidth: 1.2, dash: [4, 8])
-                )
-                .frame(width: size * 1.85, height: size * 1.85)
-                .rotationEffect(.degrees(t * 30))
-            
-            // Радиальные звездные лучи
-            ForEach(0..<12, id: \.self) { i in
-                let angle = Double(i) * 30.0 + t * 12.0
-                let rayLen = size * (0.65 + Double(i % 3) * 0.18) * (1.0 + beatImpact * 0.35)
-                let col = (i % 2 == 0) ? c1 : c3
-                
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [col.opacity(0.7 * music.settings.intensity), .clear],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(width: 2.0, height: rayLen)
-                    .offset(y: -(size * 0.65 + rayLen / 2.0))
-                    .rotationEffect(.degrees(angle))
-                    .blendMode(.screen)
-            }
         }
     }
 }

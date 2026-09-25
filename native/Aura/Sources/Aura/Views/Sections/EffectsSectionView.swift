@@ -17,18 +17,8 @@ struct EffectsSectionView: View {
                         }
                     } label: {
                         HStack(spacing: 16) {
-                            ZStack {
-                                LinearGradient(
-                                    colors: effect.gradientColors,
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                                Image(systemName: effect.symbol)
-                                    .font(.system(size: 28))
-                                    .foregroundStyle(.white)
-                            }
-                            .frame(width: 72, height: 72)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            EffectThumbnailPreview(effect: effect, isSelected: music.settings.effect == effect)
+                                .frame(width: 72, height: 72)
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(effect.localizedName)

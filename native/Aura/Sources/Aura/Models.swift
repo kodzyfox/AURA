@@ -172,6 +172,7 @@ enum Effect: String, CaseIterable, Identifiable, Codable {
     case orbit = "Орбита"
     case aurora = "Северное сияние"
     case vinyl = "Винил"
+    case cd = "CD-диск"
     case minimal = "Минимализм"
     case nebula = "Туманность"
     case cyberGrid = "Кибер-сетка"
@@ -197,6 +198,8 @@ enum Effect: String, CaseIterable, Identifiable, Codable {
         case (.aurora, .en): return "Aurora"
         case (.vinyl, .ru): return "Винил"
         case (.vinyl, .en): return "Vinyl"
+        case (.cd, .ru): return "Компакт-диск"
+        case (.cd, .en): return "Compact Disc"
         case (.minimal, .ru): return "Минимализм"
         case (.minimal, .en): return "Minimal"
         case (.nebula, .ru): return "Жидкая туманность"
@@ -217,6 +220,7 @@ enum Effect: String, CaseIterable, Identifiable, Codable {
         case .orbit: return "circle.hexagongrid"
         case .minimal: return "square.stack"
         case .vinyl: return "opticaldisc"
+        case .cd: return "opticaldisc.fill"
         case .aurora: return "wind"
         case .nebula: return "smoke.fill"
         case .cyberGrid: return "grid"
@@ -231,48 +235,52 @@ enum Effect: String, CaseIterable, Identifiable, Codable {
         case .neonPulse:
             return [Color(red: 0.0, green: 0.95, blue: 1.0), Color(red: 0.85, green: 0.27, blue: 0.94)]
         case .prism:
-            return [Color(red: 0.0, green: 0.85, blue: 1.0), Color(red: 0.95, green: 0.25, blue: 0.75), Color(red: 1.0, green: 0.75, blue: 0.20)]
+            return [Color(red: 1.0, green: 0.2, blue: 0.2), Color(red: 1.0, green: 0.8, blue: 0.1), Color(red: 0.1, green: 0.9, blue: 1.0), Color(red: 0.7, green: 0.2, blue: 0.9)]
         case .cosmicBreath:
-            return [Color(red: 0.08, green: 0.12, blue: 0.35), Color(red: 0.60, green: 0.20, blue: 0.90), Color(red: 0.0, green: 0.90, blue: 1.0)]
+            return [Color(red: 0.05, green: 0.08, blue: 0.25), Color(red: 0.40, green: 0.15, blue: 0.70), Color(red: 0.0, green: 0.90, blue: 1.0)]
         case .waves:
-            return [Color(red: 0.10, green: 0.80, blue: 0.90), Color(red: 0.15, green: 0.40, blue: 0.70)]
+            return [Color(red: 0.05, green: 0.50, blue: 0.95), Color(red: 0.0, green: 0.90, blue: 0.80)]
         case .orbit:
-            return [Color.purple.opacity(0.85), Color.indigo, Color.cyan]
+            return [Color(red: 0.10, green: 0.08, blue: 0.30), Color(red: 0.45, green: 0.20, blue: 0.85), Color(red: 0.0, green: 0.95, blue: 0.90)]
         case .aurora:
-            return [Color.mint, Color.purple, Color.blue]
+            return [Color(red: 0.05, green: 0.90, blue: 0.60), Color(red: 0.0, green: 0.75, blue: 0.95), Color(red: 0.60, green: 0.20, blue: 0.90)]
         case .vinyl:
-            return [Color(white: 0.25), Color.black]
+            return [Color(white: 0.20), Color.black]
+        case .cd:
+            return [Color(white: 0.85), Color(red: 0.65, green: 0.85, blue: 0.95), Color(red: 0.95, green: 0.75, blue: 0.90), Color(white: 0.50)]
         case .minimal:
-            return [Color.gray.opacity(0.6), Color.black.opacity(0.8)]
+            return [Color(white: 0.25), Color(white: 0.08)]
         case .nebula:
-            return [Color(red: 0.10, green: 0.85, blue: 0.95), Color(red: 0.85, green: 0.20, blue: 0.90), Color(red: 0.20, green: 0.40, blue: 1.0)]
+            return [Color(red: 0.10, green: 0.85, blue: 0.95), Color(red: 0.85, green: 0.20, blue: 0.90), Color(red: 0.95, green: 0.60, blue: 0.20)]
         case .cyberGrid:
-            return [Color(red: 1.0, green: 0.20, blue: 0.65), Color(red: 0.0, green: 0.95, blue: 1.0), Color(red: 0.50, green: 0.10, blue: 0.90)]
+            return [Color(red: 1.0, green: 0.15, blue: 0.60), Color(red: 0.25, green: 0.05, blue: 0.45), Color(red: 0.0, green: 0.95, blue: 1.0)]
         case .supernova:
-            return [Color(red: 1.0, green: 0.75, blue: 0.20), Color(red: 1.0, green: 0.30, blue: 0.50), Color(red: 0.30, green: 0.85, blue: 1.0)]
+            return [Color(red: 1.0, green: 0.85, blue: 0.25), Color(red: 1.0, green: 0.35, blue: 0.20), Color(red: 0.85, green: 0.15, blue: 0.65)]
         }
     }
 
     var localizedDescription: String {
         switch (self, L10n.current) {
-        case (.aura, .ru): return "Мягкое сферическое сияние, плавно следующее за ритмом музыки."
+        case (.aura, .ru): return "Мягкое сферическое сияние и парящие световые частицы."
         case (.aura, .en): return "Soft spherical bloom smoothly following the musical rhythm."
-        case (.neonPulse, .ru): return "Ритмичные неоновые световые волны по периметру и контуру артворка."
-        case (.neonPulse, .en): return "Rhythmic neon lightwaves along artwork borders and contour."
-        case (.prism, .ru): return "Хроматическая дисперсия: переливающиеся спектральные призменные лучи."
-        case (.prism, .en): return "Chromatic dispersion: shimmering spectral prismatic rays."
-        case (.cosmicBreath, .ru): return "Глубокая пульсирующая туманность с мягким космическим дыханием."
-        case (.cosmicBreath, .en): return "Deep pulsating nebula with gentle cosmic breathing."
-        case (.waves, .ru): return "Динамические световые кольца и интерференционные волны света."
-        case (.waves, .en): return "Dynamic light rings and optical interference waves."
-        case (.orbit, .ru): return "Наклонные 3D-орбиты с парящими спутниками вокруг обложки."
-        case (.orbit, .en): return "Tilted 3D orbits with floating satellites around artwork."
-        case (.minimal, .ru): return "Фокус только на главном: чистый артворк и мягкий глубокий блюр."
-        case (.minimal, .en): return "Focus on essentials: clean artwork and deep soft blur."
+        case (.neonPulse, .ru): return "Киберпанк-рамки HUD, угловые прицелы и реактивные неоновые эквалайзеры."
+        case (.neonPulse, .en): return "Cyberpunk HUD frames, corner targeting brackets, and reactive neon meters."
+        case (.prism, .ru): return "Хроматическая дисперсия: радужные спектральные лучи и стеклянные грани."
+        case (.prism, .en): return "Chromatic dispersion: rainbow spectral rays and crystalline glass facets."
+        case (.cosmicBreath, .ru): return "Спиральная галактика, богатое мерцающее звездное поле и глубокое дыхание космоса."
+        case (.cosmicBreath, .en): return "Spiral galaxy, twinkling starfield, and deep breathing nebula core."
+        case (.waves, .ru): return "Концентрические акустические звуковые кольца и радиальный спектр частот."
+        case (.waves, .en): return "Concentric acoustic sound ripples and radial frequency spectrum pins."
+        case (.orbit, .ru): return "Астролябия, наклонные 3D-орбиты и парящие спутники с траекториями."
+        case (.orbit, .en): return "Astrolabe ring, tilted 3D orbits, and revolving planetary satellites."
+        case (.minimal, .ru): return "Фокус только на главном: чистый парящий артворк и студийная тень."
+        case (.minimal, .en): return "Focus on essentials: clean floating artwork and studio diffused shadow."
         case (.vinyl, .ru): return "Вращающаяся виниловая пластинка с круговыми канавками и отражениями."
         case (.vinyl, .en): return "Spinning vinyl record with micro-grooves and reflections."
-        case (.aurora, .ru): return "Северное сияние: медленно колышущиеся неоновые ленты света."
-        case (.aurora, .en): return "Northern Lights: gently swaying ribbons of polar light."
+        case (.cd, .ru): return "Голографический компакт-диск с радужным переливом дифракции и дорожками данных."
+        case (.cd, .en): return "Spinning holographic compact disc with iridescent rainbow sheen."
+        case (.aurora, .ru): return "Северное сияние: струящиеся волнистые занавесы полярного изумрудно-фиолетового света."
+        case (.aurora, .en): return "Northern Lights: gently swaying ribbons of emerald and violet polar light."
         case (.nebula, _): return L10n.effectNebulaDesc
         case (.cyberGrid, _): return L10n.effectCyberGridDesc
         case (.supernova, _): return L10n.effectSupernovaDesc
@@ -330,6 +338,8 @@ struct AuraPaletteItem: Identifiable, Hashable {
         case (6, .en): return "Lavender"
         case (7, .ru): return "Ночной космос"
         case (7, .en): return "Night Cosmos"
+        case (8, .ru): return "Без свечения"
+        case (8, .en): return "No Tint"
         default: return name
         }
     }
@@ -344,7 +354,8 @@ struct AuraPalettes {
         AuraPaletteItem(id: 4, name: "Закат", previewColors: [Color(red: 1.0, green: 0.32, blue: 0.45), Color(red: 1.0, green: 0.68, blue: 0.22)]),
         AuraPaletteItem(id: 5, name: "Глубокий океан", previewColors: [Color(red: 0.15, green: 0.45, blue: 1.0), Color(red: 0.0, green: 0.88, blue: 0.96)]),
         AuraPaletteItem(id: 6, name: "Лаванда", previewColors: [Color(red: 0.72, green: 0.45, blue: 1.0), Color(red: 0.90, green: 0.65, blue: 0.98)]),
-        AuraPaletteItem(id: 7, name: "Ночной космос", previewColors: [Color(red: 0.15, green: 0.22, blue: 0.40), Color(red: 0.55, green: 0.68, blue: 0.95)])
+        AuraPaletteItem(id: 7, name: "Ночной космос", previewColors: [Color(red: 0.15, green: 0.22, blue: 0.40), Color(red: 0.55, green: 0.68, blue: 0.95)]),
+        AuraPaletteItem(id: 8, name: "Без свечения", previewColors: [Color(white: 0.25), Color(white: 0.35)])
     ]
 }
 
@@ -371,11 +382,15 @@ struct Atmosphere: Codable, Equatable {
     var effect: Effect = .aura
     var intensity: Double = 0.65
     var speed: Double = 0.35
-    var blurRadius: Double = 18.0
+    var blurRadius: Double = 18.0 {
+        didSet {
+            if blurRadius < 2.0 { blurRadius = 2.0 }
+        }
+    }
     var glowScale: Double = 1.0
     var showClock: Bool = false
     var showInfo: Bool = true
-    var palette: Int = 0 // 0..7
+    var palette: Int = 0 // 0..8
     
     // Атмосферные эффекты
     var showPlayerOnLockScreen: Bool = true // Виджет мини-плеера на экране блокировки
@@ -414,7 +429,7 @@ struct Atmosphere: Codable, Equatable {
         effect = try container.decodeIfPresent(Effect.self, forKey: .effect) ?? .aura
         intensity = try container.decodeIfPresent(Double.self, forKey: .intensity) ?? 0.65
         speed = try container.decodeIfPresent(Double.self, forKey: .speed) ?? 0.35
-        blurRadius = try container.decodeIfPresent(Double.self, forKey: .blurRadius) ?? 18.0
+        blurRadius = max(2.0, try container.decodeIfPresent(Double.self, forKey: .blurRadius) ?? 18.0)
         glowScale = try container.decodeIfPresent(Double.self, forKey: .glowScale) ?? 1.0
         showClock = try container.decodeIfPresent(Bool.self, forKey: .showClock) ?? false
         showInfo = try container.decodeIfPresent(Bool.self, forKey: .showInfo) ?? true

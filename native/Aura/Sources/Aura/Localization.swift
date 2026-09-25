@@ -190,13 +190,19 @@ public struct L10n {
         current == .ru ? "Выберите настроение" : "Choose Mood"
     }
     public static var countEffects: String {
-        current == .ru ? "9 эффектов" : "9 effects"
+        current == .ru ? "\(Effect.allCases.count) эффектов" : "\(Effect.allCases.count) effects"
     }
     public static var nineMoodsTitle: String {
-        current == .ru ? "Девять настроений для вашей музыки" : "Nine moods for your music"
+        current == .ru ? "Коллекция визуальных настроений" : "Visual Mood Collection"
     }
     public static var nineMoodsSubtitle: String {
-        current == .ru ? "Каждый эффект по-своему интерпретирует ритм, палитру и энергию текущего трека." : "Each effect uniquely interprets the rhythm, palette, and energy of the current track."
+        current == .ru ? "Каждый эффект уникален: от винила и компакт-диска до кибер-сетки и звездных вспышек." : "Each visual effect is unique: from vinyl and CD to cyber grid and starbursts."
+    }
+    public static var desktopWallpaperFill: String {
+        current == .ru ? "Заливка рабочего стола" : "Desktop Background Fill"
+    }
+    public static var desktopWallpaperFillSub: String {
+        current == .ru ? "Устанавливать фон трека на обои macOS" : "Set track background on macOS desktop"
     }
     
     // MARK: - Wallpaper & Atmosphere Settings (Правая колонка)

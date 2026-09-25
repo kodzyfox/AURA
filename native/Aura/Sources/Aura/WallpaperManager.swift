@@ -424,13 +424,17 @@ extension NSScreen {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         let shouldDrawStaticCover = isScreenLocked || (!settings.animatedDesktopCover && settings.coverAnimation == .none)
         
-        // Динамические параметры из настроек пользователя
-        let effectiveBlur = CGFloat(settings.blurRadius) * scale
-        let bgAlpha = CGFloat(max(0.12, min(1.0, settings.intensity * 1.25)))
+        let isNoGlow = (settings.palette == 8)
         
-        // 1. Глубокий темный базовый фон
-        context.setFillColor(CGColor(red: 0.04, green: 0.04, blue: 0.06, alpha: 1.0))
-        context.fill(rect)
+        // Динамические параметры из настроек пользователя
+        let effectiveBlur = CGFloat(max(2.0, settings.blurRadius)) * scale
+        let bgAlpha = isNoGlow ? 1.0 : CGFloat(max(0.12, min(1.0, settings.intensity * 1.25)))
+        
+        // 1. Глубокий темный базовый фон (пропускаем в режиме «Без свечения», чтобы не было затемнения)
+        if !isNoGlow {
+            context.setFillColor(CGColor(red: 0.04, green: 0.04, blue: 0.06, alpha: 1.0))
+            context.fill(rect)
+        }
         
         switch style {
         case .poster:
@@ -473,8 +477,10 @@ extension NSScreen {
                 drawLockscreenPlayerCard(context: context, rect: cardRect, trackInfo: info, tint: tint)
             }
             
-            // 4. Градиенты читаемости под часы и системные панели
-            drawReadabilityGradients(context: context, size: size, colorSpace: colorSpace)
+            // 4. Градиенты читаемости под часы и системные панели (пропускаем без свечения)
+            if !isNoGlow {
+                drawReadabilityGradients(context: context, size: size, colorSpace: colorSpace)
+            }
             
             // 5. Свечение по краям экрана (Ambilight) на экране блокировки
             if settings.edgeGlow && isScreenLocked {
@@ -521,8 +527,10 @@ extension NSScreen {
                 drawLockscreenPlayerCard(context: context, rect: cardRect, trackInfo: info, tint: tint)
             }
             
-            // 4. Градиенты читаемости под часы и системные панели
-            drawReadabilityGradients(context: context, size: size, colorSpace: colorSpace)
+            // 4. Градиенты читаемости под часы и системные панели (пропускаем без свечения)
+            if !isNoGlow {
+                drawReadabilityGradients(context: context, size: size, colorSpace: colorSpace)
+            }
             
             // 5. Свечение по краям экрана (Ambilight) на экране блокировки
             if settings.edgeGlow && isScreenLocked {
@@ -531,7 +539,7 @@ extension NSScreen {
             
         case .center:
             // === КЛАССИЧЕСКИЙ РЕЖИМ МИНИМАЛИЗМ ===
-            drawBlurredBackground(artwork: artwork, context: context, size: size, rect: rect, blurRadius: effectiveBlur, alpha: bgAlpha * 0.85, palette: settings.palette, tint: tint, ciContext: ciContext)
+            drawBlurredBackground(artwork: artwork, context: context, size: size, rect: rect, blurRadius: effectiveBlur, alpha: isNoGlow ? 1.0 : bgAlpha * 0.85, palette: settings.palette, tint: tint, ciContext: ciContext)
             
             let coverSize = min(size.width * 0.40, size.height * 0.48) * CGFloat(settings.coverZoomLevel)
             let coverRect = CGRect(
@@ -565,8 +573,10 @@ extension NSScreen {
                 drawLockscreenPlayerCard(context: context, rect: cardRect, trackInfo: info, tint: tint)
             }
             
-            // 4. Градиенты читаемости под часы и системные панели
-            drawReadabilityGradients(context: context, size: size, colorSpace: colorSpace)
+            // 4. Градиенты читаемости под часы и системные панели (пропускаем без свечения)
+            if !isNoGlow {
+                drawReadabilityGradients(context: context, size: size, colorSpace: colorSpace)
+            }
             
             // 5. Свечение по краям экрана (Ambilight) на экране блокировки
             if settings.edgeGlow && isScreenLocked {
@@ -598,6 +608,20 @@ extension NSScreen {
         switch settings.effect {
         case .vinyl:
             drawVinylRecord(
+                context: context,
+                artwork: artwork,
+                size: size,
+                centerX: centerX,
+                centerY: centerY,
+                coverSize: coverSize,
+                settings: settings,
+                trackInfo: trackInfo,
+                shouldShowPlayer: shouldShowPlayer,
+                colorSpace: colorSpace
+            )
+            
+        case .cd:
+            drawCDRecord(
                 context: context,
                 artwork: artwork,
                 size: size,
@@ -845,6 +869,161 @@ extension NSScreen {
             let uiScale = max(1.0, size.height / 1080.0)
             let dockSafeMargin = max(size.height * 0.14, 150 * uiScale)
             let targetTextY = centerY - vinylRadius - 38 * uiScale
+            let textTopY = max(dockSafeMargin + 32 * uiScale, targetTextY)
+            
+            let titleAttrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.systemFont(ofSize: 26 * uiScale, weight: .bold),
+                .foregroundColor: NSColor.white,
+                .shadow: {
+                    let s = NSShadow()
+                    s.shadowBlurRadius = 10 * uiScale
+                    s.shadowOffset = NSSize(width: 0, height: -2 * uiScale)
+                    s.shadowColor = NSColor.black.withAlphaComponent(0.85)
+                    return s
+                }()
+            ]
+            let artistAttrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.systemFont(ofSize: 16 * uiScale, weight: .medium),
+                .foregroundColor: NSColor(white: 1.0, alpha: 0.85),
+                .shadow: {
+                    let s = NSShadow()
+                    s.shadowBlurRadius = 8 * uiScale
+                    s.shadowOffset = NSSize(width: 0, height: -1.5 * uiScale)
+                    s.shadowColor = NSColor.black.withAlphaComponent(0.75)
+                    return s
+                }()
+            ]
+            let titleStr = NSAttributedString(string: String(info.title.prefix(40)), attributes: titleAttrs)
+            let artistStr = NSAttributedString(string: String(info.artist.prefix(45)), attributes: artistAttrs)
+            
+            let titleSize = titleStr.size()
+            let artistSize = artistStr.size()
+            
+            titleStr.draw(at: NSPoint(x: (size.width - titleSize.width) / 2.0, y: textTopY))
+            artistStr.draw(at: NSPoint(x: (size.width - artistSize.width) / 2.0, y: textTopY - 28 * uiScale))
+        }
+    }
+    
+    // Эффект Компакт-диска (CD) на рабочем столе
+    nonisolated private static func drawCDRecord(
+        context: CGContext,
+        artwork: NSImage,
+        size: CGSize,
+        centerX: CGFloat,
+        centerY: CGFloat,
+        coverSize: CGFloat,
+        settings: Atmosphere,
+        trackInfo: WallpaperTrackInfo?,
+        shouldShowPlayer: Bool,
+        colorSpace: CGColorSpace
+    ) {
+        let cdDiameter = coverSize * 1.14
+        let cdRadius = cdDiameter / 2.0
+        let cdRect = CGRect(x: centerX - cdRadius, y: centerY - cdRadius, width: cdDiameter, height: cdDiameter)
+        
+        // 1. Тень под компакт-диском
+        context.saveGState()
+        context.setShadow(
+            offset: CGSize(width: 0, height: -24),
+            blur: 50,
+            color: CGColor(red: 0, green: 0, blue: 0, alpha: 0.72)
+        )
+        context.setFillColor(CGColor(red: 0.12, green: 0.14, blue: 0.18, alpha: 1.0))
+        context.fillEllipse(in: cdRect)
+        context.restoreGState()
+        
+        // 2. Металлическая основа диска
+        context.saveGState()
+        let discPath = CGPath(ellipseIn: cdRect, transform: nil)
+        context.addPath(discPath)
+        context.clip()
+        
+        let mirrorColors = [
+            CGColor(red: 0.88, green: 0.90, blue: 0.95, alpha: 1.0),
+            CGColor(red: 0.70, green: 0.74, blue: 0.82, alpha: 1.0),
+            CGColor(red: 0.85, green: 0.88, blue: 0.94, alpha: 1.0),
+            CGColor(red: 0.65, green: 0.70, blue: 0.78, alpha: 1.0)
+        ] as CFArray
+        if let mirrorGrad = CGGradient(colorsSpace: colorSpace, colors: mirrorColors, locations: [0.0, 0.35, 0.7, 1.0]) {
+            context.drawLinearGradient(mirrorGrad, start: CGPoint(x: cdRect.minX, y: cdRect.minY), end: CGPoint(x: cdRect.maxX, y: cdRect.maxY), options: [])
+        }
+        
+        // 3. Радужные дифракционные блики (CD diffraction)
+        let rainbowColors = [
+            CGColor(red: 1.0, green: 0.2, blue: 0.4, alpha: 0.22),
+            CGColor(red: 1.0, green: 0.6, blue: 0.1, alpha: 0.22),
+            CGColor(red: 0.2, green: 0.9, blue: 0.4, alpha: 0.22),
+            CGColor(red: 0.1, green: 0.7, blue: 1.0, alpha: 0.22),
+            CGColor(red: 0.7, green: 0.2, blue: 1.0, alpha: 0.22)
+        ] as CFArray
+        if let rainbowGrad = CGGradient(colorsSpace: colorSpace, colors: rainbowColors, locations: [0.0, 0.25, 0.5, 0.75, 1.0]) {
+            context.setBlendMode(.screen)
+            context.drawRadialGradient(rainbowGrad, startCenter: CGPoint(x: centerX, y: centerY), startRadius: cdRadius * 0.4, endCenter: CGPoint(x: centerX, y: centerY), endRadius: cdRadius * 0.98, options: [])
+        }
+        context.restoreGState()
+        
+        // 4. Тонкие дорожки данных
+        context.saveGState()
+        for ring in 1...10 {
+            let r = cdRadius * (0.42 + CGFloat(ring) * 0.052)
+            let ringRect = CGRect(x: centerX - r, y: centerY - r, width: r * 2, height: r * 2)
+            context.setStrokeColor(CGColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.08))
+            context.setLineWidth(0.8)
+            context.strokeEllipse(in: ringRect)
+        }
+        context.restoreGState()
+        
+        // 5. Внутренняя область с обложкой трека
+        let labelDiameter = cdDiameter * 0.46
+        let labelRadius = labelDiameter / 2.0
+        let labelRect = CGRect(x: centerX - labelRadius, y: centerY - labelRadius, width: labelDiameter, height: labelDiameter)
+        
+        context.saveGState()
+        let labelPath = CGPath(ellipseIn: labelRect, transform: nil)
+        context.addPath(labelPath)
+        context.clip()
+        context.interpolationQuality = .high
+        artwork.draw(in: labelRect, from: .zero, operation: .sourceOver, fraction: 0.92)
+        context.restoreGState()
+        
+        // Ободок этикетки
+        context.saveGState()
+        context.setStrokeColor(CGColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.4))
+        context.setLineWidth(1.6)
+        context.strokeEllipse(in: labelRect)
+        context.restoreGState()
+        
+        // 6. Прозрачное акриловое кольцо и центральное отверстие
+        let innerClearDiameter = cdDiameter * 0.20
+        let innerClearRadius = innerClearDiameter / 2.0
+        let innerClearRect = CGRect(x: centerX - innerClearRadius, y: centerY - innerClearRadius, width: innerClearDiameter, height: innerClearDiameter)
+        
+        context.saveGState()
+        context.setFillColor(CGColor(red: 0.1, green: 0.1, blue: 0.12, alpha: 0.55))
+        context.fillEllipse(in: innerClearRect)
+        context.setStrokeColor(CGColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.3))
+        context.setLineWidth(1.2)
+        context.strokeEllipse(in: innerClearRect)
+        context.restoreGState()
+        
+        // Центральное отверстие (шпиндель)
+        let holeDiameter: CGFloat = max(18, cdDiameter * 0.08)
+        let holeRadius = holeDiameter / 2.0
+        let holeRect = CGRect(x: centerX - holeRadius, y: centerY - holeRadius, width: holeDiameter, height: holeDiameter)
+        
+        context.saveGState()
+        context.setFillColor(CGColor(red: 0.02, green: 0.02, blue: 0.03, alpha: 1.0))
+        context.fillEllipse(in: holeRect)
+        context.setStrokeColor(CGColor(red: 0.85, green: 0.85, blue: 0.90, alpha: 0.75))
+        context.setLineWidth(1.8)
+        context.strokeEllipse(in: holeRect)
+        context.restoreGState()
+        
+        // 7. Название трека и артист под компакт-диском
+        if let info = trackInfo, !shouldShowPlayer, settings.showInfo {
+            let uiScale = max(1.0, size.height / 1080.0)
+            let dockSafeMargin = max(size.height * 0.14, 150 * uiScale)
+            let targetTextY = centerY - cdRadius - 38 * uiScale
             let textTopY = max(dockSafeMargin + 32 * uiScale, targetTextY)
             
             let titleAttrs: [NSAttributedString.Key: Any] = [
@@ -1441,31 +1620,40 @@ extension NSScreen {
     }
     
     nonisolated private static func applyPaletteOverlay(context: CGContext, rect: CGRect, palette: Int, tint: CGColor?) {
+        // palette == 8: "Без свечения" — делаем задний фон на 25% темнее
+        if palette == 8 {
+            context.saveGState()
+            context.setFillColor(CGColor(red: 0, green: 0, blue: 0, alpha: 0.25))
+            context.fill(rect)
+            context.restoreGState()
+            return
+        }
         context.saveGState()
+        context.setBlendMode(.overlay)
         switch palette {
         case 1: // Aura Неон
-            context.setFillColor(CGColor(red: 0.0, green: 0.85, blue: 0.95, alpha: 0.22))
+            context.setFillColor(CGColor(red: 0.0, green: 0.85, blue: 0.95, alpha: 0.28))
             context.fill(rect)
         case 2: // Киберпанк
-            context.setFillColor(CGColor(red: 0.70, green: 0.15, blue: 0.90, alpha: 0.25))
+            context.setFillColor(CGColor(red: 0.70, green: 0.15, blue: 0.90, alpha: 0.30))
             context.fill(rect)
         case 3: // Северное сияние
-            context.setFillColor(CGColor(red: 0.05, green: 0.85, blue: 0.60, alpha: 0.20))
+            context.setFillColor(CGColor(red: 0.05, green: 0.85, blue: 0.60, alpha: 0.24))
             context.fill(rect)
         case 4: // Закат
-            context.setFillColor(CGColor(red: 0.95, green: 0.40, blue: 0.30, alpha: 0.22))
+            context.setFillColor(CGColor(red: 0.95, green: 0.40, blue: 0.30, alpha: 0.28))
             context.fill(rect)
         case 5: // Глубокий океан
-            context.setFillColor(CGColor(red: 0.05, green: 0.35, blue: 0.85, alpha: 0.28))
+            context.setFillColor(CGColor(red: 0.05, green: 0.35, blue: 0.85, alpha: 0.32))
             context.fill(rect)
         case 6: // Лаванда
-            context.setFillColor(CGColor(red: 0.65, green: 0.40, blue: 0.90, alpha: 0.22))
+            context.setFillColor(CGColor(red: 0.65, green: 0.40, blue: 0.90, alpha: 0.26))
             context.fill(rect)
         case 7: // Ночной космос
             context.setFillColor(CGColor(red: 0.04, green: 0.08, blue: 0.18, alpha: 0.45))
             context.fill(rect)
         default: // Тёплая (динамическая из обложки)
-            if let tint = tint, let tintWithAlpha = tint.copy(alpha: 0.18) {
+            if let tint = tint, let tintWithAlpha = tint.copy(alpha: 0.24) {
                 context.setFillColor(tintWithAlpha)
                 context.fill(rect)
             }

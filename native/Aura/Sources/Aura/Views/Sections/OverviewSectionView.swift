@@ -399,18 +399,7 @@ struct OverviewSectionView: View {
                         withAnimation { music.settings.effect = effect }
                     } label: {
                         VStack(alignment: .leading, spacing: 6) {
-                            ZStack {
-                                LinearGradient(
-                                    colors: effect.gradientColors,
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                                Image(systemName: effect.symbol)
-                                    .font(.system(size: 22, weight: .regular))
-                                    .foregroundStyle(.white.opacity(0.9))
-                            }
-                            .frame(height: 58)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            EffectThumbnailPreview(effect: effect, isSelected: music.settings.effect == effect)
                             
                             HStack {
                                 Text(effect.localizedName)
@@ -552,11 +541,17 @@ struct OverviewSectionView: View {
                         HStack {
                             Text(L10n.current == .ru ? "Размытие фона" : "Background Blur")
                             Spacer()
-                            Text("\(Int(music.settings.blurRadius))px")
+                            Text("\(Int(max(2.0, music.settings.blurRadius)))px")
                                 .foregroundStyle(Theme.textTertiary)
                         }
-                        Slider(value: $music.settings.blurRadius, in: 0...40)
-                            .tint(Theme.accent)
+                        Slider(
+                            value: Binding(
+                                get: { max(2.0, music.settings.blurRadius) },
+                                set: { music.settings.blurRadius = max(2.0, $0) }
+                            ),
+                            in: 2...40
+                        )
+                        .tint(Theme.accent)
                     }
                     
                     VStack(spacing: 5) {
@@ -769,7 +764,6 @@ struct OverviewSectionView: View {
                                     )
                                 }
                                 .buttonStyle(.plain)
-                                .help(p.localizedName)
                             }
                         }
                     }

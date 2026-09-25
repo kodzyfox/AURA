@@ -89,7 +89,7 @@ public final class UpdateManager: NSObject, ObservableObject {
     private var urlSession: URLSession?
     
     public var currentVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.5"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.6"
     }
     
     override private init() {

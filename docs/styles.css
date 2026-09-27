@@ -496,17 +496,271 @@ body {
   transition: transform var(--dur-normal) var(--ease-smooth);
 }
 
-/* Reactive Perimeter Ambilight Edge Glow */
+/* ==========================================================================
+   Supercharged Ambilight Edge Glow (Interior & Exterior Ambient Aura)
+   ========================================================================== */
+
+/* Outer Ambient Light Projection (spreading far beyond the MacBook frame) */
 .macbook-edge-glow {
   position: absolute;
-  inset: -14px;
-  border-radius: 28px;
+  inset: -30px;
+  border-radius: 40px;
   pointer-events: none;
-  opacity: 0.85;
-  filter: blur(30px);
   z-index: -1;
+  transition: opacity 0.3s ease;
+  will-change: transform, opacity;
+}
+
+/* Wide Horizontal Neon Wings spreading left and right */
+.outer-glow-wing {
+  position: absolute;
+  top: 10%;
+  height: 80%;
+  width: 220px;
+  filter: blur(55px);
+  opacity: 0.85;
+  border-radius: 50%;
+  pointer-events: none;
   transition: all 0.35s ease;
-  background: radial-gradient(circle at 50% 50%, var(--cyan-glow), var(--violet-glow), transparent 75%);
+}
+
+.wing-left {
+  left: -130px;
+  background: radial-gradient(ellipse at center, var(--cyan-primary) 0%, var(--violet-primary) 50%, transparent 80%);
+  animation: ambilightPulseLeft 3.2s infinite ease-in-out;
+}
+
+.wing-right {
+  right: -130px;
+  background: radial-gradient(ellipse at center, var(--magenta-primary) 0%, var(--cyan-primary) 50%, transparent 80%);
+  animation: ambilightPulseRight 3.2s infinite ease-in-out;
+}
+
+/* Top Aura & Bottom Desk Reflection */
+.outer-glow-top {
+  position: absolute;
+  top: -70px;
+  left: 10%;
+  right: 10%;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, var(--cyan-primary) 0%, var(--violet-primary) 60%, transparent 80%);
+  filter: blur(50px);
+  opacity: 0.7;
+}
+
+.outer-glow-desk {
+  position: absolute;
+  bottom: -65px;
+  left: 5%;
+  right: 5%;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, var(--cyan-primary) 0%, var(--violet-primary) 45%, transparent 75%);
+  filter: blur(45px);
+  opacity: 0.65;
+}
+
+@keyframes ambilightPulseLeft {
+  0%, 100% { transform: scaleX(0.92) scaleY(0.96); opacity: 0.75; }
+  50% { transform: scaleX(1.15) scaleY(1.08); opacity: 1; }
+}
+
+@keyframes ambilightPulseRight {
+  0%, 100% { transform: scaleX(1.15) scaleY(1.08); opacity: 1; }
+  50% { transform: scaleX(0.92) scaleY(0.96); opacity: 0.75; }
+}
+
+/* Screen Internal Perimeter Ambilight Glow (faithful to EdgeGlowView.swift) */
+.screen-ambilight-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8;
+  overflow: hidden;
+  border-radius: 12px;
+  transition: opacity 0.3s ease;
+}
+
+.ambilight-edge {
+  position: absolute;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transition: all 0.25s ease;
+}
+
+/* Top Edge: glowing downward */
+.edge-top {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--edge-thickness, 55px);
+  background: linear-gradient(180deg, var(--amb-col-1, #00f2fe) 0%, transparent 100%);
+  opacity: var(--amb-opacity, 0.95);
+  filter: blur(12px);
+}
+
+/* Bottom Edge: glowing upward */
+.edge-bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--edge-thickness, 65px);
+  background: linear-gradient(0deg, var(--amb-col-3, #ff007a) 0%, transparent 100%);
+  opacity: var(--amb-opacity, 0.95);
+  filter: blur(12px);
+}
+
+/* Left Edge: glowing rightward */
+.edge-left {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--edge-thickness, 60px);
+  background: linear-gradient(90deg, var(--amb-col-4, #8a2be2) 0%, transparent 100%);
+  opacity: var(--amb-opacity, 0.98);
+  filter: blur(14px);
+  animation: edgeWaveLeft 2.4s infinite alternate ease-in-out;
+}
+
+/* Right Edge: glowing leftward */
+.edge-right {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: var(--edge-thickness, 60px);
+  background: linear-gradient(270deg, var(--amb-col-2, #00f2fe) 0%, transparent 100%);
+  opacity: var(--amb-opacity, 0.98);
+  filter: blur(14px);
+  animation: edgeWaveRight 2.4s infinite alternate ease-in-out;
+}
+
+@keyframes edgeWaveLeft {
+  0% { transform: scaleX(0.85); opacity: 0.8; }
+  100% { transform: scaleX(1.3); opacity: 1; }
+}
+
+@keyframes edgeWaveRight {
+  0% { transform: scaleX(1.3); opacity: 1; }
+  100% { transform: scaleX(0.85); opacity: 0.8; }
+}
+
+/* Full Viewport Ambilight Mode (lights up the edges of the whole browser page!) */
+.viewport-ambilight {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.viewport-ambilight.active {
+  opacity: 1;
+}
+
+.viewport-edge {
+  position: absolute;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.viewport-edge.v-top {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background: linear-gradient(180deg, var(--amb-col-1, rgba(0, 242, 254, 0.65)) 0%, transparent 100%);
+  filter: blur(25px);
+}
+
+.viewport-edge.v-left {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 90px;
+  background: linear-gradient(90deg, var(--amb-col-4, rgba(138, 43, 226, 0.75)) 0%, transparent 100%);
+  filter: blur(30px);
+}
+
+.viewport-edge.v-right {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 90px;
+  background: linear-gradient(270deg, var(--amb-col-2, rgba(255, 0, 122, 0.75)) 0%, transparent 100%);
+  filter: blur(30px);
+}
+
+/* Ambilight Spotlight Card Styles */
+.ambilight-spotlight-box {
+  background: radial-gradient(circle at 50% 50%, rgba(0, 242, 254, 0.08) 0%, rgba(138, 43, 226, 0.05) 50%, rgba(10, 14, 22, 0.95) 100%);
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  box-shadow: 0 0 50px rgba(0, 242, 254, 0.2), inset 0 0 40px rgba(0, 242, 254, 0.1);
+  border-radius: var(--radius-xl);
+  padding: 48px;
+  margin: 60px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.ambilight-spotlight-box::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  background: var(--grad-aura);
+  box-shadow: 0 0 25px var(--cyan-primary);
+}
+
+.ambilight-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: center;
+}
+
+.ambilight-demo-screen {
+  position: relative;
+  height: 260px;
+  background: #030408;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+}
+
+.ambilight-demo-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  box-shadow: inset 0 0 60px var(--cyan-primary), inset 0 0 120px var(--violet-primary), 0 0 45px var(--cyan-glow);
+  animation: demoGlowBreath 3s infinite alternate ease-in-out;
+}
+
+@keyframes demoGlowBreath {
+  0% { opacity: 0.65; transform: scale(0.98); }
+  100% { opacity: 1.0; transform: scale(1.02); }
+}
+
+.ambilight-palette-chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.palette-chip {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* Screen Bezel & Display */

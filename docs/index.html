@@ -43,6 +43,13 @@
     <div class="ambient-orb orb-3"></div>
   </div>
 
+  <!-- Browser Viewport Edge Glow (activates when Fullscreen Ambient mode is toggled) -->
+  <div id="viewportAmbilight" class="viewport-ambilight" aria-hidden="true">
+    <div class="viewport-edge v-top"></div>
+    <div class="viewport-edge v-left"></div>
+    <div class="viewport-edge v-right"></div>
+  </div>
+
   <!-- Header Navigation -->
   <header class="site-header">
     <div class="container header-inner">
@@ -57,6 +64,7 @@
 
       <nav class="main-nav" aria-label="Primary Navigation">
         <a href="#simulator" class="nav-link" data-i18n="navSimulator">Simulator</a>
+        <a href="#ambilight" class="nav-link active" data-i18n="navAmbilight">✨ Ambilight</a>
         <a href="#features" class="nav-link" data-i18n="navFeatures">Features</a>
         <a href="#visualizers" class="nav-link" data-i18n="navGallery">Visualizers</a>
         <a href="#shortcuts" class="nav-link" data-i18n="navShortcuts">Shortcuts</a>
@@ -132,11 +140,16 @@
           </a>
         </div>
 
-        <!-- Interactive MacBook Pro Simulator -->
+        <!-- Interactive MacBook Pro Simulator with Ambilight -->
         <div class="simulator-container" id="simulator">
           <div class="macbook-frame">
-            <!-- Reactive Edge Glow -->
-            <div id="macbookEdgeGlow" class="macbook-edge-glow"></div>
+            <!-- Reactive Outer Ambient Light Projection (spreading far beyond the chassis) -->
+            <div id="macbookEdgeGlow" class="macbook-edge-glow">
+              <div class="outer-glow-wing wing-left"></div>
+              <div class="outer-glow-wing wing-right"></div>
+              <div class="outer-glow-top"></div>
+              <div class="outer-glow-desk"></div>
+            </div>
 
             <!-- MacBook Display -->
             <div class="macbook-screen">
@@ -158,6 +171,14 @@
 
               <!-- Realtime Canvas Visualizer -->
               <canvas id="visualizerCanvas" class="visualizer-canvas-layer"></canvas>
+
+              <!-- Native 4-Sided Perimeter Ambilight Edge Glow (matching EdgeGlowView.swift) -->
+              <div id="screenAmbilightGlow" class="screen-ambilight-container">
+                <div class="ambilight-edge edge-top"></div>
+                <div class="ambilight-edge edge-bottom"></div>
+                <div class="ambilight-edge edge-left"></div>
+                <div class="ambilight-edge edge-right"></div>
+              </div>
 
               <!-- Screen Overlay with Music Info & Player Bar -->
               <div class="screen-overlay">
@@ -220,9 +241,11 @@
             </div>
           </div>
 
-          <!-- Simulator Tuning Bar -->
+          <!-- Simulator Studio Controls & Ambilight Tuning Bar -->
           <div class="simulator-tuning-bar">
+            <!-- Row 1: Shaders -->
             <div class="tuning-modes">
+              <span style="font-size: 0.78rem; color: var(--text-dim); margin-right: 4px; font-weight: 600;">ШЕЙДЕР:</span>
               <button class="mode-pill active" data-mode="neonPulse" data-i18n="modePulse">Неоновый пульс</button>
               <button class="mode-pill" data-mode="cyberGrid" data-i18n="modeGrid">Кибер-сетка</button>
               <button class="mode-pill" data-mode="aurora" data-i18n="modeAurora">Северное сияние</button>
@@ -231,14 +254,84 @@
               <button class="mode-pill" data-mode="supernova" data-i18n="modeSupernova">Сверхновая</button>
             </div>
 
+            <!-- Row 2: Ambilight Palette & Fullscreen -->
             <div class="tuning-controls">
               <div class="slider-group">
-                <span data-i18n="glowLabel">Свечение</span>
-                <input type="range" id="glowSlider" class="tuning-slider" min="0.2" max="1.8" step="0.1" value="1.0">
+                <span data-i18n="ambWidthLabel">Ширина Ambilight</span>
+                <input type="range" id="edgeWidthSlider" class="tuning-slider" min="30" max="110" step="5" value="65">
               </div>
               <div class="slider-group">
-                <span data-i18n="speedLabel">Скорость</span>
-                <input type="range" id="speedSlider" class="tuning-slider" min="0.5" max="2.0" step="0.1" value="1.0">
+                <span data-i18n="glowLabel">Яркость</span>
+                <input type="range" id="glowSlider" class="tuning-slider" min="0.4" max="2.2" step="0.1" value="1.3">
+              </div>
+              <button id="viewportAmbilightBtn" class="mode-pill" style="background: rgba(0, 242, 254, 0.15); border-color: var(--cyan-primary); color: #fff;">
+                <span>🖥️</span> <span data-i18n="btnViewportAmbilight">Зажечь весь экран</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ambilight Edge Glow Spotlight Section -->
+    <section class="ambilight-spotlight-section" id="ambilight" style="padding: 20px 0 60px;">
+      <div class="container">
+        <div class="ambilight-spotlight-box">
+          <div class="ambilight-grid-2col">
+            <div>
+              <div class="section-tag" style="color: var(--cyan-primary);">✨ ГЛАВНАЯ ФИШКА AURA</div>
+              <h2 class="section-title" style="font-size: clamp(2rem, 3.8vw, 3rem); line-height: 1.15; margin-bottom: 16px;">
+                Сигнатурное свечение Ambilight по бокам экрана
+              </h2>
+              <p class="section-desc" style="margin-bottom: 22px; font-size: 1.05rem; line-height: 1.7;">
+                В отличие от стандартных музыкальных плееров, запертых в маленьком окне, AURA проецирует живые неоновые световые волны вдоль всех четырех границ вашего дисплея. Музыка буквально выходит за пределы экрана и заливает мягким кинематографичным светом всю рабочую зону.
+              </p>
+              
+              <ul style="list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+                <li style="display: flex; align-items: flex-start; gap: 10px;">
+                  <span style="color: var(--cyan-primary); font-size: 1.2rem;">✦</span>
+                  <span><strong>Аппаратный k-means анализ:</strong> мгновенно считывает 4 доминантных цвета обложки альбома и усиливает их насыщенность по модели HSB.</span>
+                </li>
+                <li style="display: flex; align-items: flex-start; gap: 10px;">
+                  <span style="color: var(--violet-primary); font-size: 1.2rem;">✦</span>
+                  <span><strong>Синхронизация с бочкой (Beat Impact):</strong> свет ярко вспыхивает на сильных долях и плавно угасает в такт ритму композиции.</span>
+                </li>
+                <li style="display: flex; align-items: flex-start; gap: 10px;">
+                  <span style="color: var(--magenta-primary); font-size: 1.2rem;">✦</span>
+                  <span><strong>Внешние мониторы и MacBook:</strong> гармонично освещает как экран ноутбука с вырезом Notch, так и внешние 4K/5K/Ultrawide дисплеи.</span>
+                </li>
+              </ul>
+
+              <!-- Live Palette Switcher for Ambilight -->
+              <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); padding: 14px 18px;">
+                <span style="font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; color: var(--text-dim); text-transform: uppercase;">Попробуйте пресеты палитры свечения:</span>
+                <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                  <button class="mode-pill ambilight-palette-btn active" data-palette="album">🎨 Обложка альбома</button>
+                  <button class="mode-pill ambilight-palette-btn" data-palette="aurora">🌌 Северное сияние</button>
+                  <button class="mode-pill ambilight-palette-btn" data-palette="sunset">🌅 Неоновый закат</button>
+                  <button class="mode-pill ambilight-palette-btn" data-palette="rainbow">🌈 Радужный спектр</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Visual Demonstration Graphic -->
+            <div>
+              <div class="ambilight-demo-screen">
+                <div class="ambilight-demo-glow" id="spotlightDemoGlow"></div>
+                <div style="text-align: center; z-index: 2; padding: 20px;">
+                  <img src="assets/AppIcon.png" alt="AURA" width="68" height="68" style="border-radius: 16px; box-shadow: 0 8px 24px rgba(0,242,254,0.4); margin-bottom: 12px;">
+                  <div style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.2rem; color: #fff;">Ambilight Edge Glow</div>
+                  <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Свечение по всему периметру дисплея</div>
+                  <div class="ambilight-palette-chips" style="justify-content: center;">
+                    <span class="palette-chip" style="background: #00f2fe;"></span>
+                    <span class="palette-chip" style="background: #8a2be2;"></span>
+                    <span class="palette-chip" style="background: #ff007a;"></span>
+                    <span class="palette-chip" style="background: #00f0a8;"></span>
+                  </div>
+                </div>
+              </div>
+              <div style="text-align: center; margin-top: 14px; font-size: 0.84rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace;">
+                ← Полное погружение в музыку без белесых засветов
               </div>
             </div>
           </div>

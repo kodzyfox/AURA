@@ -14,6 +14,7 @@
       siteTitle: "Λ U R Λ — Native Ambient Music Visualizer for macOS",
       navOverview: "Overview",
       navSimulator: "Simulator",
+      navAmbilight: "✨ Ambilight",
       navFeatures: "Features",
       navGallery: "Visualizers",
       navShortcuts: "Shortcuts",
@@ -29,8 +30,11 @@
       chipSilicon: "Apple Silicon M1—M4",
       statusLive: "AURA CORE ACTIVE",
       statusSim: "HARDWARE-ACCELERATED vDSP SIMULATOR",
-      glowLabel: "Glow",
+      glowLabel: "Glow Intensity",
       speedLabel: "Speed",
+      ambWidthLabel: "Glow Width",
+      btnViewportAmbilight: "Light up full screen",
+      btnViewportAmbilightActive: "Exit full screen glow",
       modePulse: "Neon Pulse",
       modeGrid: "Cyber Grid",
       modeAurora: "Aurora",
@@ -98,6 +102,7 @@
       siteTitle: "Λ U R Λ — Нативный музыкальный визуализатор для macOS",
       navOverview: "Обзор",
       navSimulator: "Симулятор",
+      navAmbilight: "✨ Ambilight",
       navFeatures: "Возможности",
       navGallery: "Визуализаторы",
       navShortcuts: "Горячие клавиши",
@@ -113,8 +118,11 @@
       chipSilicon: "Apple Silicon M1—M4",
       statusLive: "AURA CORE АКТИВЕН",
       statusSim: "АППАРАТНЫЙ СИМУЛЯТОР vDSP",
-      glowLabel: "Свечение",
+      glowLabel: "Яркость",
       speedLabel: "Скорость",
+      ambWidthLabel: "Ширина Ambilight",
+      btnViewportAmbilight: "Зажечь весь экран",
+      btnViewportAmbilightActive: "Свернуть свечение",
       modePulse: "Неоновый пульс",
       modeGrid: "Кибер-сетка",
       modeAurora: "Северное сияние",
@@ -253,11 +261,25 @@
   let isPlaying = true;
   let currentTimeSec = 45;
   let visualizerMode = 'neonPulse';
-  let glowIntensity = 1.0;
+  let glowIntensity = 1.3;
   let speedMultiplier = 1.0;
+  let edgeThickness = 65;
+  let currentPaletteMode = 'album';
+  let isViewportAmbilightActive = false;
   let audioContext = null;
   let synthGain = null;
   let isAudioMuted = true;
+
+  const ambilightPalettes = {
+    album: [
+      { c1: '#00f2fe', c2: '#8a2be2', c3: '#ff007a', c4: '#00f0a8' },
+      { c1: '#ff007a', c2: '#00f2fe', c3: '#8a2be2', c4: '#ffaa00' },
+      { c1: '#ffaa00', c2: '#ff007a', c3: '#00f2fe', c4: '#8a2be2' }
+    ],
+    aurora: { c1: '#0de699', c2: '#00bfe6', c3: '#7333d9', c4: '#00f0a8' },
+    sunset: { c1: '#ff007a', c2: '#ffaa00', c3: '#8a2be2', c4: '#ff5722' },
+    rainbow: { c1: '#ff0055', c2: '#ffcc00', c3: '#00f2fe', c4: '#b300ff' }
+  };
 
   function formatTime(seconds) {
     const m = Math.floor(seconds / 60);
@@ -273,7 +295,6 @@
     const currentPosEl = document.getElementById('hudCurrentPos');
     const durationEl = document.getElementById('hudDuration');
     const progressFill = document.getElementById('hudProgressFill');
-    const edgeGlowEl = document.getElementById('macbookEdgeGlow');
     const playBtn = document.getElementById('playPauseBtn');
 
     if (titleEl) titleEl.textContent = track.title;
@@ -287,9 +308,48 @@
       progressFill.style.width = `${pct}%`;
     }
 
-    if (edgeGlowEl) {
-      edgeGlowEl.style.background = track.edgeGlow;
-      edgeGlowEl.style.opacity = isPlaying ? (0.75 * glowIntensity) : (0.25 * glowIntensity);
+    // Resolve active 4-color Ambilight palette
+    let palette;
+    if (currentPaletteMode === 'album') {
+      palette = ambilightPalettes.album[currentTrackIndex % ambilightPalettes.album.length];
+    } else {
+      palette = ambilightPalettes[currentPaletteMode] || ambilightPalettes.album[0];
+    }
+
+    // Set CSS Custom Properties for live 4-sided Ambilight
+    const root = document.documentElement;
+    root.style.setProperty('--amb-col-1', palette.c1);
+    root.style.setProperty('--amb-col-2', palette.c2);
+    root.style.setProperty('--amb-col-3', palette.c3);
+    root.style.setProperty('--amb-col-4', palette.c4);
+    root.style.setProperty('--edge-thickness', `${edgeThickness}px`);
+    root.style.setProperty('--amb-opacity', `${Math.min(1.0, glowIntensity * (isPlaying ? 0.95 : 0.35))}`);
+
+    // Update outer glow wings and background reflections
+    const wingL = document.querySelector('.wing-left');
+    const wingR = document.querySelector('.wing-right');
+    const glowTop = document.querySelector('.outer-glow-top');
+    const glowDesk = document.querySelector('.outer-glow-desk');
+    const spotlightDemoGlow = document.getElementById('spotlightDemoGlow');
+
+    if (wingL) {
+      wingL.style.background = `radial-gradient(ellipse at center, ${palette.c1} 0%, ${palette.c2} 55%, transparent 80%)`;
+      wingL.style.opacity = isPlaying ? `${Math.min(1.0, 0.85 * glowIntensity)}` : '0.2';
+    }
+    if (wingR) {
+      wingR.style.background = `radial-gradient(ellipse at center, ${palette.c3} 0%, ${palette.c1} 55%, transparent 80%)`;
+      wingR.style.opacity = isPlaying ? `${Math.min(1.0, 0.85 * glowIntensity)}` : '0.2';
+    }
+    if (glowTop) {
+      glowTop.style.background = `radial-gradient(ellipse at center, ${palette.c1} 0%, ${palette.c2} 60%, transparent 80%)`;
+      glowTop.style.opacity = isPlaying ? `${Math.min(1.0, 0.7 * glowIntensity)}` : '0.15';
+    }
+    if (glowDesk) {
+      glowDesk.style.background = `radial-gradient(ellipse at center, ${palette.c3} 0%, ${palette.c1} 45%, transparent 75%)`;
+      glowDesk.style.opacity = isPlaying ? `${Math.min(1.0, 0.75 * glowIntensity)}` : '0.2';
+    }
+    if (spotlightDemoGlow) {
+      spotlightDemoGlow.style.boxShadow = `inset 0 0 60px ${palette.c1}, inset 0 0 120px ${palette.c2}, 0 0 45px ${palette.c1}`;
     }
 
     if (playBtn) {
@@ -447,6 +507,22 @@
 
       this.renderParticles();
       this.updateNotchWings();
+
+      // Real-time audio reactive kick pulse for Ambilight Edge Glow (matching EdgeGlowView.swift beat impact)
+      if (isPlaying) {
+        const beatVal = Math.sin(this.time * 2.8) * 0.5 + 0.5;
+        const kickPulse = Math.pow(beatVal, 3);
+        const dynamicThickness = Math.round(edgeThickness + kickPulse * 22);
+        document.documentElement.style.setProperty('--edge-thickness', `${dynamicThickness}px`);
+
+        const wingL = document.querySelector('.wing-left');
+        const wingR = document.querySelector('.wing-right');
+        if (wingL && wingR) {
+          const s = (1.0 + kickPulse * 0.22) * (glowIntensity * 0.9);
+          wingL.style.transform = `scale(${s})`;
+          wingR.style.transform = `scale(${s})`;
+        }
+      }
 
       requestAnimationFrame(this.animate);
     }
@@ -726,12 +802,48 @@
       });
     }
 
+    const edgeWidthSlider = document.getElementById('edgeWidthSlider');
+    if (edgeWidthSlider) {
+      edgeWidthSlider.addEventListener('input', (e) => {
+        edgeThickness = parseInt(e.target.value, 10);
+        updatePlayerHUD();
+      });
+    }
+
     const speedSlider = document.getElementById('speedSlider');
     if (speedSlider) {
       speedSlider.addEventListener('input', (e) => {
         speedMultiplier = parseFloat(e.target.value);
       });
     }
+
+    // Viewport Fullscreen Ambilight Toggle
+    const vpBtn = document.getElementById('viewportAmbilightBtn');
+    const vpAmbilight = document.getElementById('viewportAmbilight');
+    if (vpBtn && vpAmbilight) {
+      vpBtn.addEventListener('click', () => {
+        isViewportAmbilightActive = !isViewportAmbilightActive;
+        vpAmbilight.classList.toggle('active', isViewportAmbilightActive);
+        vpBtn.style.background = isViewportAmbilightActive ? 'var(--cyan-primary)' : 'rgba(0, 242, 254, 0.15)';
+        vpBtn.style.color = isViewportAmbilightActive ? '#000' : '#fff';
+        const labelSpan = vpBtn.querySelector('span:last-child');
+        if (labelSpan) {
+          const dict = translations[currentLang] || translations.en;
+          labelSpan.textContent = isViewportAmbilightActive ? dict.btnViewportAmbilightActive : dict.btnViewportAmbilight;
+        }
+      });
+    }
+
+    // Ambilight Palette Buttons
+    const paletteBtns = document.querySelectorAll('.ambilight-palette-btn');
+    paletteBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        paletteBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentPaletteMode = btn.getAttribute('data-palette') || 'album';
+        updatePlayerHUD();
+      });
+    });
 
     // Installation Tabs
     const tabBtns = document.querySelectorAll('.tab-btn');

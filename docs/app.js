@@ -30,6 +30,7 @@
       chipSilicon: "Apple Silicon M1—M4",
       statusLive: "AURA CORE ACTIVE",
       statusSim: "HARDWARE-ACCELERATED vDSP SIMULATOR",
+      shaderLabel: "SHADER:",
       glowLabel: "Glow Intensity",
       speedLabel: "Speed",
       ambWidthLabel: "Glow Width",
@@ -41,6 +42,22 @@
       modeWaves: "Waves",
       modePrism: "Prism",
       modeSupernova: "Supernova",
+      // Ambilight Section
+      ambSpotlightTag: "✨ SIGNATURE FEATURE",
+      ambSpotlightTitle: "Signature Perimeter Ambilight Edge Glow",
+      ambSpotlightDesc: "Unlike traditional music players confined to a small window, AURA projects live neon light waves along all four borders of your display. Music literally breaks beyond the screen borders and bathes your entire workspace in soft cinematic glow.",
+      ambBullet1: "<strong>Hardware k-means analysis:</strong> extracts 4 dominant colors of the album art in real-time and boosts their vibrancy using HSB color modeling.",
+      ambBullet2: "<strong>Beat Impact synchronization:</strong> light pulses brightly on heavy kicks and downbeats, gracefully fading in sync with the rhythm.",
+      ambBullet3: "<strong>External Displays & MacBook:</strong> harmoniously illuminates both the built-in laptop screen with Notch and external 4K/5K/Ultrawide monitors.",
+      ambPaletteLabel: "Try glow palette presets:",
+      ambPaletteAlbum: "🎨 Album Art",
+      ambPaletteAurora: "🌌 Northern Lights",
+      ambPaletteSunset: "🌅 Neon Sunset",
+      ambPaletteRainbow: "🌈 Rainbow Spectrum",
+      ambDemoTitle: "Ambilight Edge Glow",
+      ambDemoSub: "Full perimeter display glow",
+      ambDemoCaption: "← Immersive musical atmosphere without washed-out glare",
+      // Metrics
       metric1Val: "0",
       metric1Lbl: "External Dependencies (100% Pure Swift)",
       metric2Val: "< 1.2%",
@@ -49,6 +66,7 @@
       metric3Lbl: "Apple Accelerate vDSP FFT Spectral Tap",
       metric4Val: "60 → 15",
       metric4Lbl: "Dynamic FPS Thermal Governance",
+      // Features
       featuresTag: "PERFORMANCE & ARCHITECTURE",
       featuresTitle: "Engineered for macOS. Zero compromises.",
       featuresDesc: "No Electron. No web wrappers. No Chromium background bloat. Built directly on Apple's fastest low-level frameworks.",
@@ -56,6 +74,7 @@
       feat1Desc: "Projects real-time neon light waves along your display bezels. Uses hardware k-means palette extraction with HSB saturation booster to turn your display edges into an atmospheric extension of the music.",
       feat2Title: "Camera Notch Halo & Dynamic Island HUD",
       feat2Desc: "Hardware-accurate geometry hugging MacBook Pro & Air camera notches. Features expanding reactive audio wings and glanceable playback telemetry.",
+      notchDemoBadge: " Hardware-Accurate Geometry",
       feat3Title: "11 Generative Visualizer Shaders",
       feat3Desc: "From retro-futuristic Cyber Grid and Neon Pulse to fluid cosmic nebulas and auroras. Fullscreen immersive artwork stage (⌘ + F) and generative audio atmosphere.",
       feat4Title: "Dynamic Multi-Monitor Wallpapers",
@@ -64,9 +83,22 @@
       feat5Desc: "Interactive borderless widget anchored at kCGDesktopWindowLevel beneath icons (spinning vinyl, floating 3D card), plus an always-on-top frosted-glass mini-player (⌘ + M).",
       feat6Title: "WidgetKit Extension & Last.fm 2.0",
       feat6Desc: "Standalone Notification Center and lock screen widgets. Official Last.fm scrobbler with offline queuing and encrypted credential storage in macOS Keychain.",
+      // Gallery & Visualizers
       galleryTag: "ATMOSPHERIC PRESETS",
       galleryTitle: "11 Iconic Visualizer Modes",
       galleryDesc: "Engineered with expansive geometries and vibrant palettes that react to every beat and frequency band.",
+      descNeonPulse: "Concentric neon rings with chromatic dispersion and dynamic sub-bass response.",
+      descCyberGrid: "Perspective 3D horizon grid with smooth scrolling velocity and rhythm peak reactivity.",
+      descAurora: "Soft shifting waves of emerald, turquoise, and violet light with harmonic modulation.",
+      descWaves: "Multi-layered silky ribbons with gradient fills oscillating to the melody.",
+      descPrism: "Spectral refraction through spinning multifaceted glass prisms with chromatic brilliance.",
+      descSupernova: "Explosive stellar pulsar with orbital particle bursts and radial energy beams.",
+      descNebula: "Smooth billowing cosmic clouds of interstellar gas with dynamic density shifts.",
+      descCosmicBreath: "Gentle cosmic respiration: deep color pulsation tailored for ambient and meditative tracks.",
+      descOrbit: "Rotating satellite rings orbiting the central album artwork in continuous motion.",
+      descVinyl: "Tactile vinyl disc or compact disc with realistic rotation and reactive light sheens.",
+      descMinimal: "Clean, understated contours with subtle breathing animations and zero visual clutter.",
+      // Shortcuts
       shortcutsTag: "QUICK CONTROLS",
       shortcutsTitle: "Global Keyboard Shortcuts",
       shortcutsDesc: "Control your music and ambient atmosphere effortlessly from anywhere in macOS.",
@@ -78,20 +110,31 @@
       scFullscreen: "Toggle Fullscreen Cover Mode",
       scMini: "Toggle Floating Mini-Player",
       scEsc: "Exit Fullscreen Stage",
+      // Install
       installTag: "GET STARTED",
       installTitle: "Ready in seconds.",
       installDesc: "Download the pre-compiled universal disk image or build directly from source in terminal.",
       tabDmg: "Pre-built DMG (Recommended)",
       tabSource: "Build from Source",
       tabReq: "System Requirements",
+      dmgDownloadBtn: "⬇️ Download Aura.dmg (6.0 MB)",
       dmgStep1: "1. Download latest Aura.dmg installer from GitHub Releases.",
       dmgStep2: "2. Open the disk image and drag Aura into your Applications folder.",
       dmgStep3: "3. Launch Aura. Allow automation permissions for Spotify or Apple Music when prompted.",
       dmgTip: "Gatekeeper Tip: If macOS displays an unidentified developer prompt on first launch, right-click Aura.app → select Open, or click 'Open Anyway' in System Settings → Privacy & Security.",
+      sourceClone: "# Clone repository",
+      sourceBuild: "# Build native bundle & DMG",
+      tabReqTitle: "macOS Architecture",
+      reqOS: "<span class=\"cmd\">• Operating System:</span> macOS 14.0 (Sonoma) or macOS 15.0+ (Sequoia)",
+      reqArch: "<span class=\"cmd\">• Architecture:</span> Apple Silicon (M1 / M2 / M3 / M4, arm64)",
+      reqPlayers: "<span class=\"cmd\">• Supported Players:</span> Spotify (Free & Premium), Apple Music, local audio files (FLAC, WAV, AIFF, M4A, MP3)",
+      reqDeps: "<span class=\"cmd\">• Dependencies:</span> 0 (Pure Apple native frameworks)",
+      // CTA & Footer
       ctaTitle: "Experience your music in a whole new light.",
       ctaDesc: "Download Aura v0.1.7 today. Completely native, lightweight, and engineered exclusively for Apple Silicon.",
       ctaBtn: "Download Aura for macOS",
       ctaNotes: "View Release Notes (v0.1.7)",
+      ctaMeta: "macOS 14.0+ Sonoma & Sequoia • Apple Silicon (M1/M2/M3/M4) • ~6.0 MB",
       copyBtn: "Copy",
       copied: "Copied!",
       footerTagline: "Native Ambient Music Visualizer & Intelligent Desktop Companion for macOS.",
@@ -118,6 +161,7 @@
       chipSilicon: "Apple Silicon M1—M4",
       statusLive: "AURA CORE АКТИВЕН",
       statusSim: "АППАРАТНЫЙ СИМУЛЯТОР vDSP",
+      shaderLabel: "ШЕЙДЕР:",
       glowLabel: "Яркость",
       speedLabel: "Скорость",
       ambWidthLabel: "Ширина Ambilight",
@@ -129,6 +173,22 @@
       modeWaves: "Волны",
       modePrism: "Призма",
       modeSupernova: "Сверхновая",
+      // Ambilight Section
+      ambSpotlightTag: "✨ ГЛАВНАЯ ФИШКА AURA",
+      ambSpotlightTitle: "Сигнатурное свечение Ambilight по бокам экрана",
+      ambSpotlightDesc: "В отличие от стандартных музыкальных плееров, запертых в маленьком окне, AURA проецирует живые неоновые световые волны вдоль всех четырех границ вашего дисплея. Музыка буквально выходит за пределы экрана и заливает мягким кинематографичным светом всю рабочую зону.",
+      ambBullet1: "<strong>Аппаратный k-means анализ:</strong> мгновенно считывает 4 доминантных цвета обложки альбома и усиливает их насыщенность по модели HSB.",
+      ambBullet2: "<strong>Синхронизация с бочкой (Beat Impact):</strong> свет ярко вспыхивает на сильных долях и плавно угасает в такт ритму композиции.",
+      ambBullet3: "<strong>Внешние мониторы и MacBook:</strong> гармонично освещает как экран ноутбука с вырезом Notch, так и внешние 4K/5K/Ultrawide дисплеи.",
+      ambPaletteLabel: "Попробуйте пресеты палитры свечения:",
+      ambPaletteAlbum: "🎨 Обложка альбома",
+      ambPaletteAurora: "🌌 Северное сияние",
+      ambPaletteSunset: "🌅 Неоновый закат",
+      ambPaletteRainbow: "🌈 Радужный спектр",
+      ambDemoTitle: "Ambilight Edge Glow",
+      ambDemoSub: "Свечение по всему периметру дисплея",
+      ambDemoCaption: "← Полное погружение в музыку без белесых засветов",
+      // Metrics
       metric1Val: "0",
       metric1Lbl: "Внешних зависимостей (100% Чистый Swift)",
       metric2Val: "< 1.2%",
@@ -137,6 +197,7 @@
       metric3Lbl: "Спектральный анализ Apple Accelerate vDSP FFT",
       metric4Val: "60 → 15",
       metric4Lbl: "Адаптивное терморегулирование частоты кадров",
+      // Features
       featuresTag: "ПРОИЗВОДИТЕЛЬНОСТЬ И АРХИТЕКТУРА",
       featuresTitle: "Создано для macOS. Никаких компромиссов.",
       featuresDesc: "Никакого Electron. Никаких веб-обёрток. Без фоновой нагрузки Chromium. Приложение работает напрямую с быстрейшими низкоуровневыми фреймворками Apple.",
@@ -144,6 +205,7 @@
       feat1Desc: "Проецирует динамические неоновые волны по рамкам экрана в ритм трека. Аппаратный k-means анализ палитры обложки с HSB-усилителем превращает дисплей в атмосферное продолжение музыки.",
       feat2Title: "Ореол вокруг выреза Notch и Dynamic Island HUD",
       feat2Desc: "Точная геометрия для вырезов экранов MacBook Pro и Air. Пульсирующие стерео-крылья визуализатора и компактная телеметрия прямо вокруг камеры.",
+      notchDemoBadge: " Аппаратная геометрия выреза",
       feat3Title: "11 генеративных шейдеров визуализации",
       feat3Desc: "От футуристичной Кибер-сетки и Неонового пульса до космических туманностей и сияний. Полноэкранный кинотеатральный режим (⌘ + F) и адаптивная атмосфера.",
       feat4Title: "Динамические обои для всех мониторов",
@@ -152,9 +214,22 @@
       feat5Desc: "Интерактивный виджет на уровне kCGDesktopWindowLevel прямо под иконками рабочего стола (винил, 3D-карточка), а также парящий поверх всех окон стеклянный мини-плеер (⌘ + M).",
       feat6Title: "Виджет для Центра уведомлений и Last.fm 2.0",
       feat6Desc: "Отдельное расширение WidgetKit для экрана блокировки и боковой панели. Официальный скробблинг Last.fm с офлайн-очередью и шифрованием в Связке ключей macOS.",
+      // Gallery & Visualizers
       galleryTag: "АТМОСФЕРНЫЕ ПРЕСЕТЫ",
       galleryTitle: "11 культовых режимов визуализации",
       galleryDesc: "Широкоформатная геометрия и сочные градиенты, живо реагирующие на каждую долю такта и частотный диапазон.",
+      descNeonPulse: "Концентрические неоновые кольца с хроматической дисперсией и динамической реакцией на бас.",
+      descCyberGrid: "Перспективная 3D-сетка горизонта с плавной скоростью прокрутки и откликом на ритмические пики.",
+      descAurora: "Мягкие переливающиеся волны изумрудного, бирюзового и фиолетового света с гармонической модуляцией.",
+      descWaves: "Многослойные шелковистые ленты с градиентной заливкой, колеблющиеся в такт мелодии.",
+      descPrism: "Преломление спектра через вращающиеся многогранные стеклянные призмы с хроматическим сиянием.",
+      descSupernova: "Взрывной звёздный пульсар с орбитальными вспышками частиц и радиальными лучами энергии.",
+      descNebula: "Плавные клубящиеся космические облака межзвёздного газа с динамической сменой плотности.",
+      descCosmicBreath: "Мягкое дыхание Вселенной: глубинная пульсация цвета для медитативных и эмбиент-композиций.",
+      descOrbit: "Вращающиеся спутниковые кольца вокруг центральной обложки альбома в непрерывном танце.",
+      descVinyl: "Тактильный виниловый диск или компакт-диск с реалистичным вращением и световыми бликами.",
+      descMinimal: "Чистый лаконичный контур с минималистичным дыханием без отвлекающих графических деталей.",
+      // Shortcuts
       shortcutsTag: "БЫСТРОЕ УПРАВЛЕНИЕ",
       shortcutsTitle: "Глобальные горячие клавиши",
       shortcutsDesc: "Управляйте музыкой и атмосферой мгновенно из любого приложения в macOS.",
@@ -166,20 +241,31 @@
       scFullscreen: "Полноэкранный режим с обложкой",
       scMini: "Плавающий мини-плеер",
       scEsc: "Выход из полноэкранного режима",
+      // Install
       installTag: "БЫСТРЫЙ СТАРТ",
       installTitle: "Готов к работе за секунды.",
       installDesc: "Скачайте готовый установочный образ DMG или соберите напрямую из исходников в терминале.",
       tabDmg: "Готовый образ DMG (Рекомендуется)",
       tabSource: "Сборка из исходников",
       tabReq: "Системные требования",
+      dmgDownloadBtn: "⬇️ Скачать Aura.dmg (6.0 MB)",
       dmgStep1: "1. Скачайте образ Aura.dmg со страницы релизов GitHub.",
       dmgStep2: "2. Откройте образ и перетащите Aura в папку «Программы» (Applications).",
       dmgStep3: "3. Запустите Aura и подтвердите доступ к автоматизации Spotify или Apple Music.",
       dmgTip: "Совет Gatekeeper: при первом запуске нажмите правой кнопкой мыши по Aura.app → «Открыть» или выберите «Подтвердить вход» в Системных настройках → Конфиденциальность и безопасность.",
+      sourceClone: "# Клонирование репозитория",
+      sourceBuild: "# Сборка нативного бандла и DMG",
+      tabReqTitle: "Архитектура macOS",
+      reqOS: "<span class=\"cmd\">• Операционная система:</span> macOS 14.0 (Sonoma) или macOS 15.0+ (Sequoia)",
+      reqArch: "<span class=\"cmd\">• Архитектура:</span> Apple Silicon (M1 / M2 / M3 / M4, arm64)",
+      reqPlayers: "<span class=\"cmd\">• Поддерживаемые плееры:</span> Spotify (Free & Premium), Apple Music, локальные аудиофайлы (FLAC, WAV, AIFF, M4A, MP3)",
+      reqDeps: "<span class=\"cmd\">• Зависимости:</span> 0 (Чистые нативные фреймворки Apple)",
+      // CTA & Footer
       ctaTitle: "Взгляните на свою музыку по-новому.",
       ctaDesc: "Скачайте Aura v0.1.7 прямо сейчас. Полностью нативно, сверхлегковесно и эксклюзивно для Apple Silicon.",
       ctaBtn: "Скачать Aura для macOS",
       ctaNotes: "Список изменений (v0.1.7)",
+      ctaMeta: "macOS 14.0+ Sonoma & Sequoia • Apple Silicon (M1/M2/M3/M4) • ~6.0 MB",
       copyBtn: "Копировать",
       copied: "Скопировано!",
       footerTagline: "Нативный музыкальный визуализатор и умный настольный компаньон для macOS.",
@@ -206,16 +292,30 @@
     localStorage.setItem('aura_lang', lang);
     const dict = translations[lang] || translations.en;
 
+    document.documentElement.lang = lang;
+    if (dict.siteTitle) {
+      document.title = dict.siteTitle;
+    }
+
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       if (dict[key]) {
-        el.textContent = dict[key];
+        if (dict[key].includes('<') && dict[key].includes('>')) {
+          el.innerHTML = dict[key];
+        } else {
+          el.textContent = dict[key];
+        }
       }
     });
 
     const langBtn = document.getElementById('langToggle');
     if (langBtn) {
       langBtn.innerHTML = `<span>🌐</span> <span>${lang.toUpperCase()}</span>`;
+    }
+
+    const vpSpan = document.querySelector('#viewportAmbilightBtn span:last-child');
+    if (vpSpan) {
+      vpSpan.textContent = isViewportAmbilightActive ? dict.btnViewportAmbilightActive : dict.btnViewportAmbilight;
     }
   }
 
@@ -880,7 +980,7 @@
     });
 
     // Code Copy Buttons
-    document.querySelectorAll('.btn-copy').forEach(btn => {
+    document.querySelectorAll('button.btn-copy').forEach(btn => {
       btn.addEventListener('click', () => {
         const codeBlock = btn.closest('.code-block-card');
         const code = codeBlock ? codeBlock.querySelector('.code-body').innerText : '';

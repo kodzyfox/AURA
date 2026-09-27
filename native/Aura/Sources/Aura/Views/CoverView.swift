@@ -13,27 +13,38 @@ struct CoverView: View {
     
     private let clockTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
+    // Статический DateFormatter — его инициализация дорогая, поэтому не создаём новый на каждое обновление view
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "EEEE, d MMMM"
+        return f
+    }()
+    
     var body: some View {
-        TimelineView(.animation(minimumInterval: PerformanceManager.shared.overlayFrameInterval, paused: reduceMotion || !music.playing)) { context in
-            let t = reduceMotion || !music.playing ? 0 : context.date.timeIntervalSinceReferenceDate
-            let currentPos = music.currentPlaybackPosition(at: context.date)
-            
-            GeometryReader { geo in
-                ZStack {
-                    // 1. Полноэкранный кинематографичный фон на основе обложки
-                    Color.black.ignoresSafeArea()
+        GeometryReader { geo in
+            ZStack {
+                // 1. Статический фон ВЫНЕСЕН из TimelineView.
+                // blur(radius:65) на полноэкранном изображении очень дорог для GPU.
+                // Рендерим его один раз; он не анимирован — изменяется только при смене трека.
+                Color.black.ignoresSafeArea()
+                
+                if let artwork = music.artwork ?? music.fallback {
+                    Image(nsImage: artwork)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .blur(radius: 65)
+                        .opacity(0.42)
+                        .scaleEffect(1.2)
+                        .ignoresSafeArea()
+                }
+                
+                // 2. Весь анимированный контент сверху
+                TimelineView(.animation(minimumInterval: PerformanceManager.shared.overlayFrameInterval, paused: reduceMotion || !music.playing)) { context in
+                    let t = reduceMotion || !music.playing ? 0 : context.date.timeIntervalSinceReferenceDate
+                    let currentPos = music.currentPlaybackPosition(at: context.date)
                     
-                    if let artwork = music.artwork ?? music.fallback {
-                        Image(nsImage: artwork)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: geo.size.width, height: geo.size.height)
-                            .blur(radius: 65)
-                            .opacity(0.42)
-                            .scaleEffect(1.2)
-                            .ignoresSafeArea()
-                    }
-                    
+                    ZStack {
                     // Динамический свет в тон обложки
                     if let tint = music.artworkColor {
                         RadialGradient(
@@ -182,18 +193,19 @@ struct CoverView: View {
                         }
                         Spacer()
                     }
-                }
-                .frame(width: geo.size.width, height: geo.size.height)
-                .onContinuousHover { phase in
-                    switch phase {
-                    case .active:
-                        userActivityDetected()
-                    case .ended:
-                        break
+                    } // ZStack (animated)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .onContinuousHover { phase in
+                        switch phase {
+                        case .active:
+                            userActivityDetected()
+                        case .ended:
+                            break
+                        }
                     }
-                }
-            }
-        }
+                } // TimelineView
+            } // ZStack outer
+        } // GeometryReader
         .onReceive(clockTimer) { newDate in
             currentTime = newDate
         }
@@ -345,10 +357,10 @@ struct CoverView: View {
     }
     
     private var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: LocalizationManager.shared.language == .ru ? "ru_RU" : "en_US")
-        formatter.dateFormat = "EEEE, d MMMM"
-        return formatter.string(from: currentTime).capitalized
+        // Локаль обновляется редко, поэтому создаём объект только раз (статический)
+        let locale = Locale(identifier: LocalizationManager.shared.language == .ru ? "ru_RU" : "en_US")
+        CoverView.dateFormatter.locale = locale
+        return CoverView.dateFormatter.string(from: currentTime).capitalized
     }
     
     private func userActivityDetected() {

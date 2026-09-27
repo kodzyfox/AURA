@@ -178,9 +178,11 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
             }
             
             // Периодический таймер-сторож: моментально закрывает HUD,
-            // если курсор мыши быстро покинул зону островка
+            // если курсор мыши быстро покинул зону островка.
+            // Таймер запускается на RunLoop.main, поэтому используем assumeIsolated
+            // вместо полного Task { @MainActor in } для снижения overhead.
             hoverDismissTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] timer in
-                Task { @MainActor in
+                MainActor.assumeIsolated {
                     guard let self = self else {
                         timer.invalidate()
                         return

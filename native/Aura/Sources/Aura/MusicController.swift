@@ -206,9 +206,11 @@ import SwiftUI
         }
         presets = presetStore.load()
 
-        // Предотвращаем замедление и усыпление таймера при выключенном дисплее (App Nap)
+        // Предотвращаем замедление таймера при выключенном дисплее (App Nap).
+        // Намеренно НЕ используем .latencyCritical — он блокирует переход CPU в idle
+        // и приводит к перегреву даже на фоне.
         activityAssertion = ProcessInfo.processInfo.beginActivity(
-            options: [.userInitiatedAllowingIdleSystemSleep, .latencyCritical],
+            options: [.userInitiatedAllowingIdleSystemSleep],
             reason: "Aura continuous music monitoring and Last.fm scrobbler"
         )
 
@@ -318,8 +320,10 @@ import SwiftUI
         updateArtworkColor()
         poll()
 
-        // Фоновый опрос плееров и обновление статуса
-        let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in
+        // Фоновый опрос плееров и обновление статуса.
+        // Используем интервал 2 сек для снижения нагрузки на CPU;
+        // уведомления от MediaRemote и Spotify обеспечивают мгновенную реакцию.
+        let timer = Timer(timeInterval: 2.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.poll()
             }
@@ -678,18 +682,20 @@ import SwiftUI
     }
 
     private func updateArtworkColor() {
-        if let image = artwork ?? fallback {
-            artworkColor = ColorExtractor.extractDominantColor(from: image)
-            // Извлекаем палитру из нескольких доминантных цветов (async, чтобы не блокировать UI)
-            let img = image
-            Task { @MainActor [weak self] in
-                let palette = await Task.detached(priority: .utility) {
-                    ColorExtractor.extractPalette(from: img, count: 3)
-                }.value
-                self?.artworkPalette = palette
-            }
-            if playing && activePlayerName != nil {
-                scheduleWallpaperUpdate(delay: 0.15)
+        guard let image = artwork ?? fallback else { return }
+        let img = image
+        // Выполняем всё извлечение цветов на фоновом потоке, чтобы не блокировать main.
+        // ColorExtractor использует NSGraphicsContext и k-means — это дорогие операции.
+        Task { @MainActor [weak self] in
+            let (dominant, palette) = await Task.detached(priority: .utility) {
+                let pal = ColorExtractor.extractPalette(from: img, count: 3)
+                return (pal.first, pal)
+            }.value
+            guard let self else { return }
+            self.artworkColor = dominant
+            self.artworkPalette = palette
+            if self.playing && self.activePlayerName != nil {
+                self.scheduleWallpaperUpdate(delay: 0.15)
             }
         }
     }

@@ -67,6 +67,8 @@ enum VisualQuality: String, CaseIterable, Identifiable, Codable {
     var effectiveQuality: VisualQuality {
         if quality != .automatic { return quality }
         if isLowPowerMode || thermalState == .serious || thermalState == .critical { return .low }
+        // При умеренном нагреве (.fair) переходим на сбалансированный режим, не ждём критического
+        if thermalState == .fair { return .balanced }
         if isOnBattery && disableExpensiveEffectsOnBattery {
             if let pct = batteryPercent, pct <= 20 {
                 return .low

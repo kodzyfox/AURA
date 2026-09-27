@@ -557,19 +557,40 @@
       this.ctx.restore();
     }
 
-    // 1. Neon Pulse
+    // Dynamically calculate the EXACT pixel center of the album cover card
+    getCenter() {
+      const coverCard = document.querySelector('.album-cover-card') || document.getElementById('hudAlbumCover');
+      if (coverCard && this.canvas) {
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const coverRect = coverCard.getBoundingClientRect();
+        if (canvasRect.width > 0 && coverRect.width > 0) {
+          const cx = (coverRect.left + coverRect.width / 2) - canvasRect.left;
+          const cy = (coverRect.top + coverRect.height / 2) - canvasRect.top;
+          return { cx, cy };
+        }
+      }
+      return { cx: this.width / 2, cy: this.height * 0.46 };
+    }
+
+    // 1. Neon Pulse (tactical rounded concentric pulses centered directly on the album cover)
     renderNeonPulse(track) {
-      const cx = this.width / 2;
-      const cy = this.height / 2;
+      const { cx, cy } = this.getCenter();
       const beat = isPlaying ? Math.sin(this.time * 2.5) * 0.35 + 0.65 : 0.4;
       const rings = 4;
+      const baseRadius = 64; // Starts right outside the 110px album cover square (half-width 55px)
 
       this.ctx.save();
       for (let i = 1; i <= rings; i++) {
-        const r = (i * 42 + (this.time * 18 * i) % 120) * beat;
+        const r = baseRadius + (i * 32 + (this.time * 22 * i) % 115) * beat;
         this.ctx.beginPath();
-        this.ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        this.ctx.lineWidth = Math.max(1, 4 - i * 0.8) * glowIntensity;
+        if (this.ctx.roundRect) {
+          // Native Aura style rounded tactical rectangle matching album cover corner radius
+          const size = r * 1.85;
+          this.ctx.roundRect(cx - size / 2, cy - size / 2, size, size, 20);
+        } else {
+          this.ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        }
+        this.ctx.lineWidth = Math.max(1.4, 4.2 - i * 0.75) * glowIntensity;
         this.ctx.strokeStyle = i % 2 === 0 ? track.primaryColor : track.secondaryColor;
         this.ctx.shadowColor = track.primaryColor;
         this.ctx.shadowBlur = 18 * glowIntensity;
@@ -578,17 +599,17 @@
       this.ctx.restore();
     }
 
-    // 2. Cyber Grid
+    // 2. Cyber Grid (vanishing horizon aligns directly with bottom edge of album cover)
     renderCyberGrid(track) {
-      const cx = this.width / 2;
-      const horizonY = this.height * 0.48;
+      const { cx, cy } = this.getCenter();
+      const horizonY = cy + 62;
       this.ctx.save();
       this.ctx.strokeStyle = track.primaryColor;
       this.ctx.lineWidth = 1;
       this.ctx.shadowColor = track.primaryColor;
       this.ctx.shadowBlur = 8 * glowIntensity;
 
-      // Perspective vertical lines
+      // Perspective vertical lines converging on cover center
       const lineCount = 14;
       for (let i = -lineCount; i <= lineCount; i++) {
         const bottomX = cx + (i * this.width) / lineCount;
@@ -611,15 +632,16 @@
       this.ctx.restore();
     }
 
-    // 3. Aurora
+    // 3. Aurora (curtains of light flowing centered around cover Y)
     renderAurora(track) {
+      const { cx, cy } = this.getCenter();
       const bands = 3;
       this.ctx.save();
       for (let b = 0; b < bands; b++) {
         this.ctx.beginPath();
         this.ctx.moveTo(0, this.height);
         for (let x = 0; x <= this.width; x += 15) {
-          const y = this.height * 0.45 +
+          const y = cy +
             Math.sin(x * 0.008 + this.time * 1.5 + b) * 35 +
             Math.cos(x * 0.015 - this.time * 0.8) * 20;
           this.ctx.lineTo(x, y);
@@ -627,7 +649,7 @@
         this.ctx.lineTo(this.width, this.height);
         this.ctx.closePath();
 
-        const grad = this.ctx.createLinearGradient(0, this.height * 0.3, 0, this.height);
+        const grad = this.ctx.createLinearGradient(0, cy - 80, 0, this.height);
         grad.addColorStop(0, b === 0 ? 'rgba(0, 240, 168, 0.35)' : 'rgba(0, 242, 254, 0.25)');
         grad.addColorStop(1, 'rgba(138, 43, 226, 0.0)');
         this.ctx.fillStyle = grad;
@@ -636,9 +658,9 @@
       this.ctx.restore();
     }
 
-    // 4. Waves
+    // 4. Waves (fluid harmonic ribbons passing directly through cover center)
     renderWaves(track) {
-      const cy = this.height * 0.55;
+      const { cx, cy } = this.getCenter();
       this.ctx.save();
       for (let w = 0; w < 3; w++) {
         this.ctx.beginPath();
@@ -656,16 +678,15 @@
       this.ctx.restore();
     }
 
-    // 5. Prism
+    // 5. Prism (polygonal refractive spectrum rotating around album cover center)
     renderPrism(track) {
-      const cx = this.width / 2;
-      const cy = this.height / 2;
+      const { cx, cy } = this.getCenter();
       this.ctx.save();
       this.ctx.translate(cx, cy);
       this.ctx.rotate(this.time * 0.4);
 
       const sides = 6;
-      const radius = 70 + Math.sin(this.time * 2.2) * 12;
+      const radius = 82 + Math.sin(this.time * 2.2) * 14;
       this.ctx.beginPath();
       for (let i = 0; i < sides; i++) {
         const a = (i * 2 * Math.PI) / sides;
@@ -686,8 +707,8 @@
       this.ctx.beginPath();
       for (let j = 0; j < 3; j++) {
         const a = (j * 2 * Math.PI) / 3;
-        const px = Math.cos(a) * (radius * 0.55);
-        const py = Math.sin(a) * (radius * 0.55);
+        const px = Math.cos(a) * (radius * 0.58);
+        const py = Math.sin(a) * (radius * 0.58);
         if (j === 0) this.ctx.moveTo(px, py);
         else this.ctx.lineTo(px, py);
       }
@@ -697,14 +718,13 @@
       this.ctx.restore();
     }
 
-    // 6. Supernova
+    // 6. Supernova (stellar core and radial flares shooting symmetrically from behind album cover)
     renderSupernova(track) {
-      const cx = this.width / 2;
-      const cy = this.height / 2;
-      const pulse = isPlaying ? Math.sin(this.time * 3.5) * 8 + 32 : 24;
+      const { cx, cy } = this.getCenter();
+      const pulse = isPlaying ? Math.sin(this.time * 3.5) * 8 + 36 : 28;
 
       this.ctx.save();
-      const grad = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, pulse * 2.4);
+      const grad = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, pulse * 2.8);
       grad.addColorStop(0, '#ffffff');
       grad.addColorStop(0.3, track.primaryColor);
       grad.addColorStop(0.8, track.secondaryColor);
@@ -712,18 +732,18 @@
 
       this.ctx.fillStyle = grad;
       this.ctx.beginPath();
-      this.ctx.arc(cx, cy, pulse * 2.4, 0, Math.PI * 2);
+      this.ctx.arc(cx, cy, pulse * 2.8, 0, Math.PI * 2);
       this.ctx.fill();
 
       // Flare rays
-      const rays = 8;
+      const rays = 10;
       this.ctx.strokeStyle = track.primaryColor;
-      this.ctx.lineWidth = 1.5;
+      this.ctx.lineWidth = 1.6;
       for (let k = 0; k < rays; k++) {
         const a = (k * Math.PI) / rays + this.time * 0.3;
         this.ctx.beginPath();
-        this.ctx.moveTo(cx - Math.cos(a) * 90, cy - Math.sin(a) * 90);
-        this.ctx.lineTo(cx + Math.cos(a) * 90, cy + Math.sin(a) * 90);
+        this.ctx.moveTo(cx - Math.cos(a) * 110, cy - Math.sin(a) * 110);
+        this.ctx.lineTo(cx + Math.cos(a) * 110, cy + Math.sin(a) * 110);
         this.ctx.stroke();
       }
       this.ctx.restore();

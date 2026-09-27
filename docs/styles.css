@@ -878,13 +878,19 @@ body {
 
 /* Center Stage Artwork & Music Info */
 .screen-center-stage {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  margin: auto 0;
   pointer-events: none;
+  z-index: 10;
+  width: 90%;
+  max-width: 380px;
 }
 
 .album-cover-card {

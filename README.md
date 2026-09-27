@@ -15,11 +15,13 @@
   <img src="https://img.shields.io/badge/architecture-Apple%20Silicon%20(arm64)-007AFF?style=for-the-badge&logo=apple" alt="Apple Silicon" />
   <img src="https://img.shields.io/badge/license-Proprietary-red?style=for-the-badge" alt="Proprietary License" />
   <img src="https://img.shields.io/badge/dependencies-0%20(100%25%20Native)-success?style=for-the-badge" alt="Dependencies: 0" />
+  <a href="https://kodzyfox.github.io/AURA/"><img src="https://img.shields.io/badge/website-live%20showcase-00f2fe?style=for-the-badge&logo=safari&logoColor=white" alt="Live Website" /></a>
 </p>
 
 ---
 
-### Language / Язык
+### Language / Язык & Links
+- 🌐 **[Live Interactive Website & Showcase](https://kodzyfox.github.io/AURA/)**
 - [English Documentation](#english)
 - [Русская документация](#русский)
 

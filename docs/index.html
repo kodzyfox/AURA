@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>Λ U R Λ — Native Ambient Music Visualizer & Desktop Companion for macOS</title>
+  <meta name="description" content="Aura is a lightweight, hardware-accelerated music visualizer for macOS. Real-time Ambilight edge glow, MacBook camera notch halo, dynamic multi-monitor wallpapers, and 11 audio-reactive shaders for Apple Silicon.">
+  <meta name="keywords" content="Aura, macOS, Apple Silicon, music visualizer, ambilight, notch halo, Spotify, Apple Music, Swift, SwiftUI">
+  <meta name="author" content="Kodzy">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kodzyfox.github.io/AURA/">
+  <meta property="og:title" content="Λ U R Λ — Native Ambient Music Visualizer for macOS">
+  <meta property="og:description" content="Experience your music in a whole new light. Real-time perimeter Ambilight glow, MacBook notch halo, and 11 generative shaders. 100% Native Swift for Apple Silicon.">
+  <meta property="og:image" content="assets/og-image.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://kodzyfox.github.io/AURA/">
+  <meta property="twitter:title" content="Λ U R Λ — Native Ambient Music Visualizer for macOS">
+  <meta property="twitter:description" content="Ultra-lightweight, hardware-accelerated ambient visualizer and desktop companion exclusively for Apple Silicon.">
+  <meta property="twitter:image" content="assets/og-image.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/AppIcon.png">
+
+  <!-- Google Fonts: Outfit + Plus Jakarta Sans + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Ambient Light Orbs -->
+  <div class="bg-ambient" aria-hidden="true">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#" class="logo-group" aria-label="Aura Home">
+        <div class="logo-icon-wrapper">
+          <img src="assets/AppIcon.png" alt="Aura Logo" class="logo-icon" width="38" height="38">
+          <div class="logo-pulse"></div>
+        </div>
+        <span class="logo-text">Λ U R Λ</span>
+        <span class="version-pill">v0.1.7</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Primary Navigation">
+        <a href="#simulator" class="nav-link" data-i18n="navSimulator">Simulator</a>
+        <a href="#features" class="nav-link" data-i18n="navFeatures">Features</a>
+        <a href="#visualizers" class="nav-link" data-i18n="navGallery">Visualizers</a>
+        <a href="#shortcuts" class="nav-link" data-i18n="navShortcuts">Shortcuts</a>
+        <a href="#install" class="nav-link" data-i18n="navInstall">Install</a>
+      </nav>
+
+      <div class="header-actions">
+        <!-- Language Switcher -->
+        <button id="langToggle" class="btn-lang" onclick="toggleLanguage()" aria-label="Toggle language">
+          <span>🌐</span> <span>RU</span>
+        </button>
+
+        <!-- GitHub Repo Link -->
+        <a href="https://github.com/kodzyfox/AURA" target="_blank" rel="noopener noreferrer" class="btn-github" aria-label="View on GitHub">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+
+        <!-- Download Button -->
+        <a href="https://github.com/kodzyfox/AURA/releases/latest/download/Aura.dmg" class="btn-primary" data-i18n="navDownload">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+          </svg>
+          <span>Скачать v0.1.7</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section" id="overview">
+      <div class="container">
+        <div class="hero-badge-wrap">
+          <div class="hero-pill">
+            <span class="pulse-dot"></span>
+            <span data-i18n="heroBadge">100% Native Swift • 0 Зависимостей • macOS 14+ Sonoma & Sequoia</span>
+          </div>
+        </div>
+
+        <h1 class="hero-title">
+          <span class="gradient-text" data-i18n="heroTitle1">Звук, который вы видите.</span><br>
+          <span data-i18n="heroTitle2">Свет, который вы чувствуете.</span>
+        </h1>
+
+        <p class="hero-subtitle" data-i18n="heroSubtitle">
+          Легковесный, аппаратно-ускоренный визуализатор музыки и настольный компаньон, созданный эксклюзивно для Apple Silicon. Динамический Ambilight по периметру экрана, ореол вокруг выреза Notch и живые обои.
+        </p>
+
+        <div class="hero-cta-group">
+          <a href="https://github.com/kodzyfox/AURA/releases/latest/download/Aura.dmg" class="btn-primary btn-large">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.93-2.85-.9.04-1.99.6-2.63 1.35-.57.65-.89 1.7-.95 2.76 1 .08 2.03-.51 2.65-1.26z"/>
+            </svg>
+            <span data-i18n="btnDownloadDmg">Скачать Aura.dmg</span>
+            <span class="apple-silicon-chip">arm64</span>
+          </a>
+
+          <a href="#simulator" class="btn-secondary btn-large">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            <span data-i18n="btnTrySimulator">Интерактивная студия</span>
+          </a>
+
+          <a href="https://github.com/kodzyfox/AURA" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-large">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <span data-i18n="btnViewGithub">Звезда на GitHub</span>
+          </a>
+        </div>
+
+        <!-- Interactive MacBook Pro Simulator -->
+        <div class="simulator-container" id="simulator">
+          <div class="macbook-frame">
+            <!-- Reactive Edge Glow -->
+            <div id="macbookEdgeGlow" class="macbook-edge-glow"></div>
+
+            <!-- MacBook Display -->
+            <div class="macbook-screen">
+              <!-- Notch Capsule with reactive halo & wings -->
+              <div class="notch-capsule">
+                <div class="notch-wings" aria-hidden="true">
+                  <div class="notch-wing-bar" style="height: 6px;"></div>
+                  <div class="notch-wing-bar" style="height: 10px;"></div>
+                  <div class="notch-wing-bar" style="height: 14px;"></div>
+                </div>
+                <div class="notch-camera-dot"></div>
+                <div class="notch-wings" aria-hidden="true">
+                  <div class="notch-wing-bar" style="height: 14px;"></div>
+                  <div class="notch-wing-bar" style="height: 10px;"></div>
+                  <div class="notch-wing-bar" style="height: 6px;"></div>
+                </div>
+                <div class="notch-halo"></div>
+              </div>
+
+              <!-- Realtime Canvas Visualizer -->
+              <canvas id="visualizerCanvas" class="visualizer-canvas-layer"></canvas>
+
+              <!-- Screen Overlay with Music Info & Player Bar -->
+              <div class="screen-overlay">
+                <div class="screen-topbar">
+                  <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span data-i18n="statusLive">AURA CORE АКТИВЕН</span>
+                  </div>
+                  <div class="status-mode" data-i18n="statusSim">АППАРАТНЫЙ СИМУЛЯТОР vDSP</div>
+                </div>
+
+                <!-- Center Cover & Song Info -->
+                <div class="screen-center-stage">
+                  <div class="album-cover-card playing">
+                    <img id="hudAlbumCover" src="assets/aura_cover.jpg" alt="Current Album Artwork" class="album-cover-img" width="110" height="110">
+                  </div>
+                  <div id="hudSongTitle" class="song-title">Resonance Horizon</div>
+                  <div id="hudSongArtist" class="song-artist">Aura Ambient Soundlab</div>
+                </div>
+
+                <!-- Bottom Player Bar -->
+                <div class="screen-player-bar">
+                  <div class="player-left">
+                    <button id="prevTrackBtn" class="player-ctrl-btn" aria-label="Previous Track">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="19 20 9 12 19 4 19 20"/>
+                        <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </button>
+
+                    <button id="playPauseBtn" class="player-ctrl-btn play-btn" aria-label="Play or Pause">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16"/>
+                        <rect x="14" y="4" width="4" height="16"/>
+                      </svg>
+                    </button>
+
+                    <button id="nextTrackBtn" class="player-ctrl-btn" aria-label="Next Track">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5 4 15 12 5 20 5 4"/>
+                        <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </button>
+
+                    <!-- Ambient Web Audio Sound Toggle -->
+                    <button id="soundToggleBtn" class="player-ctrl-btn" title="Toggle Ambient Audio Synth" aria-label="Toggle Sound">
+                      🔇
+                    </button>
+                  </div>
+
+                  <div class="player-progress-wrap">
+                    <span id="hudCurrentPos" class="time-stamp">0:45</span>
+                    <div class="progress-track">
+                      <div id="hudProgressFill" class="progress-fill"></div>
+                    </div>
+                    <span id="hudDuration" class="time-stamp">3:35</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Simulator Tuning Bar -->
+          <div class="simulator-tuning-bar">
+            <div class="tuning-modes">
+              <button class="mode-pill active" data-mode="neonPulse" data-i18n="modePulse">Неоновый пульс</button>
+              <button class="mode-pill" data-mode="cyberGrid" data-i18n="modeGrid">Кибер-сетка</button>
+              <button class="mode-pill" data-mode="aurora" data-i18n="modeAurora">Северное сияние</button>
+              <button class="mode-pill" data-mode="waves" data-i18n="modeWaves">Волны</button>
+              <button class="mode-pill" data-mode="prism" data-i18n="modePrism">Призма</button>
+              <button class="mode-pill" data-mode="supernova" data-i18n="modeSupernova">Сверхновая</button>
+            </div>
+
+            <div class="tuning-controls">
+              <div class="slider-group">
+                <span data-i18n="glowLabel">Свечение</span>
+                <input type="range" id="glowSlider" class="tuning-slider" min="0.2" max="1.8" step="0.1" value="1.0">
+              </div>
+              <div class="slider-group">
+                <span data-i18n="speedLabel">Скорость</span>
+                <input type="range" id="speedSlider" class="tuning-slider" min="0.5" max="2.0" step="0.1" value="1.0">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Metrics Strip -->
+    <section class="metrics-strip">
+      <div class="container">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-value gradient-text" data-i18n="metric1Val">0</div>
+            <div class="metric-label" data-i18n="metric1Lbl">Внешних зависимостей (100% Чистый Swift)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value gradient-text" data-i18n="metric2Val">&lt; 1.2%</div>
+            <div class="metric-label" data-i18n="metric2Lbl">Нагрузка на CPU Apple Silicon в фоне</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value gradient-text" data-i18n="metric3Val">1024-pt</div>
+            <div class="metric-label" data-i18n="metric3Lbl">Спектральный анализ Apple Accelerate vDSP FFT</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value gradient-text" data-i18n="metric4Val">60 → 15</div>
+            <div class="metric-label" data-i18n="metric4Lbl">Адаптивное терморегулирование частоты кадров</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Bento Grid -->
+    <section class="features-section" id="features">
+      <div class="container">
+        <div class="section-title-wrap">
+          <div class="section-tag" data-i18n="featuresTag">ПРОИЗВОДИТЕЛЬНОСТЬ И АРХИТЕКТУРА</div>
+          <h2 class="section-title" data-i18n="featuresTitle">Создано для macOS. Никаких компромиссов.</h2>
+          <p class="section-desc" data-i18n="featuresDesc">Никакого Electron. Никаких веб-обёрток. Без фоновой нагрузки Chromium. Приложение работает напрямую с быстрейшими низкоуровневыми фреймворками Apple.</p>
+        </div>
+
+        <div class="bento-grid">
+          <!-- Card 1: Edge Glow -->
+          <article class="bento-card col-8">
+            <div class="card-icon">✨</div>
+            <h3 class="card-title" data-i18n="feat1Title">Периметральное свечение Ambilight (Edge Glow)</h3>
+            <p class="card-text" data-i18n="feat1Desc">Проецирует динамические неоновые волны по рамкам экрана в ритм трека. Аппаратный k-means анализ палитры обложки с HSB-усилителем превращает дисплей в атмосферное продолжение музыки.</p>
+            <div class="feature-graphic-edge">
+              <div class="edge-spectrum-bars">
+                <div class="spec-bar" style="height: 30px;"></div>
+                <div class="spec-bar" style="height: 50px;"></div>
+                <div class="spec-bar" style="height: 25px;"></div>
+                <div class="spec-bar" style="height: 58px;"></div>
+                <div class="spec-bar" style="height: 42px;"></div>
+                <div class="spec-bar" style="height: 60px;"></div>
+                <div class="spec-bar" style="height: 35px;"></div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 2: Notch Halo -->
+          <article class="bento-card col-4">
+            <div class="card-icon">⚡</div>
+            <h3 class="card-title" data-i18n="feat2Title">Ореол вокруг выреза Notch и Dynamic Island HUD</h3>
+            <p class="card-text" data-i18n="feat2Desc">Точная геометрия для вырезов экранов MacBook Pro и Air. Пульсирующие стерео-крылья визуализатора и компактная телеметрия прямо вокруг камеры.</p>
+            <div style="margin-top: auto; text-align: center;">
+              <span class="notch-demo-badge"> Hardware Accurate Geometry</span>
+            </div>
+          </article>
+
+          <!-- Card 3: Visualizers -->
+          <article class="bento-card col-4">
+            <div class="card-icon">🌌</div>
+            <h3 class="card-title" data-i18n="feat3Title">11 генеративных шейдеров визуализации</h3>
+            <p class="card-text" data-i18n="feat3Desc">От футуристичной Кибер-сетки и Неонового пульса до космических туманностей и сияний. Полноэкранный кинотеатральный режим (⌘ + F) и адаптивная атмосфера.</p>
+          </article>
+
+          <!-- Card 4: Wallpapers -->
+          <article class="bento-card col-4">
+            <div class="card-icon">🖼️</div>
+            <h3 class="card-title" data-i18n="feat4Title">Динамические обои для всех мониторов</h3>
+            <p class="card-text" data-i18n="feat4Desc">Композитор CoreImage генерирует кинематографичные размытые обои под тон текущего трека с режимом 25% затемнения, автоматически восстанавливая исходные обои при паузе.</p>
+          </article>
+
+          <!-- Card 5: Desktop Overlay -->
+          <article class="bento-card col-4">
+            <div class="card-icon">🪟</div>
+            <h3 class="card-title" data-i18n="feat5Title">Оверлей под иконками и стеклянный мини-плеер</h3>
+            <p class="card-text" data-i18n="feat5Desc">Интерактивный виджет на уровне kCGDesktopWindowLevel прямо под иконками рабочего стола (винил, 3D-карточка), а также парящий поверх всех окон стеклянный мини-плеер (⌘ + M).</p>
+          </article>
+
+          <!-- Card 6: Widget & Last.fm -->
+          <article class="bento-card col-12">
+            <div class="card-icon">📱</div>
+            <h3 class="card-title" data-i18n="feat6Title">Виджет для Центра уведомлений и Last.fm 2.0</h3>
+            <p class="card-text" data-i18n="feat6Desc">Отдельное расширение WidgetKit для экрана блокировки и боковой панели. Официальный скробблинг Last.fm с офлайн-очередью и шифрованием в Связке ключей macOS.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visualizers Gallery -->
+    <section class="gallery-section" id="visualizers">
+      <div class="container">
+        <div class="section-title-wrap">
+          <div class="section-tag" data-i18n="galleryTag">АТМОСФЕРНЫЕ ПРЕСЕТЫ</div>
+          <h2 class="section-title" data-i18n="galleryTitle">11 культовых режимов визуализации</h2>
+          <p class="section-desc" data-i18n="galleryDesc">Широкоформатная геометрия и сочные градиенты, живо реагирующие на каждую долю такта и частотный диапазон.</p>
+        </div>
+
+        <div class="effects-grid">
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-name">Neon Pulse</span>
+              <span class="effect-badge">Cyan / Violet</span>
+            </div>
+            <p class="effect-desc">Концентрические неоновые кольца с хроматической дисперсией и динамической реакцией на бас.</p>
+          </div>
+
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-name">Cyber Grid</span>
+              <span class="effect-badge">Synthwave</span>
+            </div>
+            <p class="effect-desc">Перспективная 3D-сетка горизонта с плавной скоростью прокрутки и откликом на ритмические пики.</p>
+          </div>
+
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-name">Aurora</span>
+              <span class="effect-badge">Polar Light</span>
+            </div>
+            <p class="effect-desc">Мягкие переливающиеся волны изумрудного, бирюзового и фиолетового света с гармонической модуляцией.</p>
+          </div>
+
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-name">Waves</span>
+              <span class="effect-badge">Oceanic</span>
+            </div>
+            <p class="effect-desc">Многослойные шелковистые ленты с градиентной заливкой, колеблющиеся в такт мелодии.</p>
+          </div>
+
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-name">Prism</span>
+              <span class="effect-badge">Geometric</span>
+            </div>
+            <p class="effect-desc">Преломление спектра через вращающиеся многогранные стеклянные призмы с хроматическим сиянием.</p>
+          </div>
+
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-name">Supernova</span>
+              <span class="effect-badge">Stellar</span>
+            </div>
+            <p class="effect-desc">Взрывной звёздный пульсар с орбитальными вспышками частиц и радиальными лучами энергии.</p>
+          </div>
+
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-name">Fluid Nebula</span>
+              <span class="effect-badge">Deep Space</span>
+            </div>
+            <p class="effect-desc">Плавные клубящиеся космические облака межзвёздного газа с динамической сменой плотности.</p>
+          </div>
+
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-name">Cosmic Breath</span>
+              <span class="effect-badge">Ambient</span>
+            </div>
+            <p class="effect-desc">Мягкое дыхание Вселенной: глубинная пульсация цвета для медитативных и эмбиент-композиций.</p>
+          </div>
+
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-name">Orbit</span>
+              <span class="effect-badge">Gravitational</span>
+            </div>
+            <p class="effect-desc">Вращающиеся спутниковые кольца вокруг центральной обложки альбома в непрерывном танце.</p>
+          </div>
+
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-name">Vinyl & CD</span>
+              <span class="effect-badge">Analog Retrotouch</span>
+            </div>
+            <p class="effect-desc">Тактильный виниловый диск или компакт-диск с реалистичным вращением и световыми бликами.</p>
+          </div>
+
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-name">Minimal</span>
+              <span class="effect-badge">Clean</span>
+            </div>
+            <p class="effect-desc">Чистый лаконичный контур с минималистичным дыханием без отвлекающих графических деталей.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Global Shortcuts Section -->
+    <section class="shortcuts-section" id="shortcuts">
+      <div class="container">
+        <div class="section-title-wrap">
+          <div class="section-tag" data-i18n="shortcutsTag">БЫСТРОЕ УПРАВЛЕНИЕ</div>
+          <h2 class="section-title" data-i18n="shortcutsTitle">Глобальные горячие клавиши</h2>
+          <p class="section-desc" data-i18n="shortcutsDesc">Управляйте музыкой и атмосферой мгновенно из любого приложения в macOS.</p>
+        </div>
+
+        <div class="shortcuts-table">
+          <div class="shortcut-row">
+            <span class="shortcut-action" data-i18n="scPlay">Воспроизведение / Пауза</span>
+            <div class="key-combo"><span class="key-cap">Space</span></div>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action" data-i18n="scNext">Следующий трек</span>
+            <div class="key-combo"><span class="key-cap">⌘</span><span class="key-cap">→</span></div>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action" data-i18n="scPrev">Предыдущий трек</span>
+            <div class="key-combo"><span class="key-cap">⌘</span><span class="key-cap">←</span></div>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action" data-i18n="scVolUp">Увеличить громкость</span>
+            <div class="key-combo"><span class="key-cap">⌘</span><span class="key-cap">↑</span></div>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action" data-i18n="scVolDown">Уменьшить громкость</span>
+            <div class="key-combo"><span class="key-cap">⌘</span><span class="key-cap">↓</span></div>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action" data-i18n="scFullscreen">Полноэкранный режим с обложкой</span>
+            <div class="key-combo"><span class="key-cap">⌘</span><span class="key-cap">F</span></div>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action" data-i18n="scMini">Плавающий мини-плеер</span>
+            <div class="key-combo"><span class="key-cap">⌘</span><span class="key-cap">M</span></div>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-action" data-i18n="scEsc">Выход из полноэкранного режима</span>
+            <div class="key-combo"><span class="key-cap">Esc</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation & Build Guide -->
+    <section class="install-section" id="install">
+      <div class="container">
+        <div class="section-title-wrap">
+          <div class="section-tag" data-i18n="installTag">БЫСТРЫЙ СТАРТ</div>
+          <h2 class="section-title" data-i18n="installTitle">Готов к работе за секунды.</h2>
+          <p class="section-desc" data-i18n="installDesc">Скачайте готовый установочный образ DMG или соберите напрямую из исходников в терминале.</p>
+        </div>
+
+        <div class="tabs-header">
+          <button class="tab-btn active" data-tab="tab-dmg" data-i18n="tabDmg">Готовый образ DMG (Рекомендуется)</button>
+          <button class="tab-btn" data-tab="tab-source" data-i18n="tabSource">Сборка из исходников</button>
+          <button class="tab-btn" data-tab="tab-req" data-i18n="tabReq">Системные требования</button>
+        </div>
+
+        <!-- Tab 1: DMG -->
+        <div id="tab-dmg" class="tab-content active">
+          <div class="code-block-card">
+            <div class="code-header">
+              <div class="code-dots">
+                <span class="code-dot dot-red"></span>
+                <span class="code-dot dot-yellow"></span>
+                <span class="code-dot dot-green"></span>
+              </div>
+              <a href="https://github.com/kodzyfox/AURA/releases/latest/download/Aura.dmg" class="btn-copy">
+                ⬇️ Скачать Aura.dmg (6.0 MB)
+              </a>
+            </div>
+            <div class="code-body">
+              <p><span class="cmd" data-i18n="dmgStep1">1. Скачайте образ Aura.dmg со страницы релизов GitHub.</span></p>
+              <p><span class="cmd" data-i18n="dmgStep2">2. Откройте образ и перетащите Aura в папку «Программы» (Applications).</span></p>
+              <p><span class="cmd" data-i18n="dmgStep3">3. Запустите Aura и подтвердите доступ к автоматизации Spotify или Apple Music.</span></p>
+              <br>
+              <p class="comment" data-i18n="dmgTip">💡 Совет Gatekeeper: при первом запуске нажмите правой кнопкой мыши по Aura.app → «Открыть» или выберите «Подтвердить вход» в Системных настройках → Конфиденциальность и безопасность.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Build Source -->
+        <div id="tab-source" class="tab-content">
+          <div class="code-block-card">
+            <div class="code-header">
+              <div class="code-dots">
+                <span class="code-dot dot-red"></span>
+                <span class="code-dot dot-yellow"></span>
+                <span class="code-dot dot-green"></span>
+              </div>
+              <button class="btn-copy" data-i18n="copyBtn">Копировать</button>
+            </div>
+            <div class="code-body">
+              <span class="comment"># Клонирование репозитория</span><br>
+              <span class="cmd">git clone https://github.com/kodzyfox/AURA.git</span><br>
+              <span class="cmd">cd AURA</span><br><br>
+              <span class="comment"># Сборка нативного бандла и DMG</span><br>
+              <span class="cmd">./build.sh</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: System Requirements -->
+        <div id="tab-req" class="tab-content">
+          <div class="code-block-card">
+            <div class="code-header">
+              <div class="code-dots">
+                <span class="code-dot dot-red"></span>
+                <span class="code-dot dot-yellow"></span>
+                <span class="code-dot dot-green"></span>
+              </div>
+              <span style="font-size: 0.76rem; color: #64748b;">macOS Architecture</span>
+            </div>
+            <div class="code-body">
+              <span class="cmd">• Операционная система:</span> macOS 14.0 (Sonoma) или macOS 15.0+ (Sequoia)<br>
+              <span class="cmd">• Архитектура:</span> Apple Silicon (M1 / M2 / M3 / M4, arm64)<br>
+              <span class="cmd">• Поддерживаемые плееры:</span> Spotify (Free & Premium), Apple Music, локальные аудиофайлы (FLAC, WAV, AIFF, M4A, MP3)<br>
+              <span class="cmd">• Зависимости:</span> 0 (Чистые нативные фреймворки Apple)
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download Call to Action -->
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-box">
+          <h2 class="cta-title" data-i18n="ctaTitle">Взгляните на свою музыку по-новому.</h2>
+          <p class="cta-desc" data-i18n="ctaDesc">Скачайте Aura v0.1.7 прямо сейчас. Полностью нативно, сверхлегковесно и эксклюзивно для Apple Silicon.</p>
+          <div class="cta-actions">
+            <a href="https://github.com/kodzyfox/AURA/releases/latest/download/Aura.dmg" class="btn-primary btn-large">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+              </svg>
+              <span data-i18n="ctaBtn">Скачать Aura для macOS</span>
+              <span class="apple-silicon-chip">v0.1.7 DMG</span>
+            </a>
+            <a href="https://github.com/kodzyfox/AURA/releases/tag/v0.1.7" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-large" data-i18n="ctaNotes">
+              Список изменений (v0.1.7)
+            </a>
+          </div>
+          <div class="cta-meta">
+            macOS 14.0+ Sonoma & Sequoia • Apple Silicon (M1/M2/M3/M4) • ~6.0 MB
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img src="assets/AppIcon.png" alt="Aura Logo" width="28" height="28" style="border-radius: 6px;">
+          <span>Λ U R Λ</span>
+        </div>
+        <div class="footer-links">
+          <a href="#overview" class="footer-link" data-i18n="navOverview">Обзор</a>
+          <a href="#features" class="footer-link" data-i18n="navFeatures">Возможности</a>
+          <a href="#visualizers" class="footer-link" data-i18n="navGallery">Визуализаторы</a>
+          <a href="https://github.com/kodzyfox/AURA" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+          <a href="https://github.com/kodzyfox/AURA/releases" target="_blank" rel="noopener noreferrer" class="footer-link">Releases</a>
+          <a href="https://github.com/kodzyfox/AURA/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-link">License</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p data-i18n="footerCrafted">Разработано с душой Kodzy.</p>
+        <p style="margin-top: 4px; font-size: 0.78rem;" data-i18n="footerLicense">Проприетарная лицензия • Эксклюзивно для Apple Silicon</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

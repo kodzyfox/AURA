@@ -30,7 +30,7 @@ import SwiftUI
     }
     
     func updateOverlayState() {
-        guard let music = musicController else {
+        guard let music = musicController, !music.isScrobbleMode else {
             cancelDelayedClose()
             closeAll()
             return
@@ -73,7 +73,7 @@ import SwiftUI
     func reconfigureWindows() {
         cancelDelayedClose()
         closeAll()
-        guard let music = musicController else { return }
+        guard let music = musicController, !music.isScrobbleMode else { return }
         guard music.playing && music.activePlayerName != nil && (music.settings.edgeGlow || music.settings.animatedDesktopCover) else { return }
         
         for screen in NSScreen.screens {

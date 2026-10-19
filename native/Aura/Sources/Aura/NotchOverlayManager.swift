@@ -63,6 +63,7 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
     
     func handleTrackChanged() {
         guard let music = musicController,
+              !music.isScrobbleMode,
               music.playing,
               music.settings.notchGlow,
               music.settings.notchHUDOnTrackChange else { return }
@@ -82,7 +83,7 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
     }
     
     func updateOverlayState() {
-        guard let music = musicController else {
+        guard let music = musicController, !music.isScrobbleMode else {
             closeAll()
             return
         }
@@ -99,7 +100,7 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
     
     func reconfigureWindow() {
         closeAll()
-        guard let music = musicController else { return }
+        guard let music = musicController, !music.isScrobbleMode else { return }
         guard music.playing && music.activePlayerName != nil && music.settings.notchGlow else { return }
         guard let screen = NotchGeometryHelper.activeNotchScreen() else { return }
         

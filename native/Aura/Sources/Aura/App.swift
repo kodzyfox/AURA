@@ -26,13 +26,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        WindowCloseHandler.shared.showMainWindow()
+        // В режиме скробблинга не открываем окно при повторном открытии
+        let isScrobbleMode = UserDefaults.standard.bool(forKey: "aura.isScrobbleMode")
+        if !isScrobbleMode {
+            WindowCloseHandler.shared.showMainWindow()
+        }
         return true
     }
     
     func applicationDidBecomeActive(_ notification: Notification) {
         guard didFinishInitialLaunch else { return }
-        if !WindowCloseHandler.shared.isWindowVisible {
+        // В режиме скробблинга окно остаётся скрытым
+        let isScrobbleMode = UserDefaults.standard.bool(forKey: "aura.isScrobbleMode")
+        if !isScrobbleMode && !WindowCloseHandler.shared.isWindowVisible {
             WindowCloseHandler.shared.showMainWindow()
         }
     }
@@ -66,6 +72,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 .background(
                     WindowAccessor { window in
                         WindowCloseHandler.shared.setup(window: window)
+                        // Если режим скробблинга был сохранён, сразу скрываем окно при запуске
+                        if music.isScrobbleMode {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                WindowCloseHandler.shared.hideMainWindow()
+                            }
+                        }
                     }
                 )
                 .onAppear {
@@ -139,6 +151,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
                 .keyboardShortcut("f", modifiers: [.control, .command])
+                
+                Button(music.isScrobbleMode ? L10n.menuNormalMode : L10n.menuScrobbleMode) {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        music.toggleScrobbleMode()
+                    }
+                }
+                .keyboardShortcut("s", modifiers: [.command, .shift])
                 
                 Divider()
                 

@@ -1,12 +1,12 @@
 import Foundation
 
 /// Coordinates Last.fm now-playing notifications, scrobble threshold evaluation, and queue flushing.
-@MainActor final class ScrobblingCoordinator {
+@MainActor final class ScrobblingCoordinator: ObservableObject {
     static let shared = ScrobblingCoordinator()
 
-    private var hasScrobbledCurrentTrack: Bool = false
-    private var nowPlayingUpdatedForTrackId: String = ""
-    private var lastScrobbledTrackId: String = ""
+    @Published private(set) var hasScrobbledCurrentTrack: Bool = false
+    @Published private(set) var nowPlayingUpdatedForTrackId: String = ""
+    @Published private(set) var lastScrobbledTrackId: String = ""
 
     private init() {}
 

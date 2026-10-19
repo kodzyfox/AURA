@@ -137,6 +137,16 @@ struct OverviewSectionView: View {
                         Spacer()
                         Button {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                music.toggleScrobbleMode()
+                            }
+                        } label: {
+                            Label(L10n.scrobbleMode, systemImage: "leaf.fill")
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.trailing, 8)
+
+                        Button {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                 music.toggleCoverMode()
                             }
                         } label: {

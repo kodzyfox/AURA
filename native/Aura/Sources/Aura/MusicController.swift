@@ -99,7 +99,21 @@ import SwiftUI
     @Published var message: String?
     @Published var isCoverMode: Bool = false
     @Published var isMiniPlayer: Bool = false
+    @Published var isScrobbleMode: Bool = UserDefaults.standard.bool(forKey: "aura.isScrobbleMode") {
+        didSet {
+            UserDefaults.standard.set(isScrobbleMode, forKey: "aura.isScrobbleMode")
+            handleScrobbleModeChange()
+        }
+    }
     @Published var isScreenLocked: Bool = false
+
+    var hasScrobbledCurrentTrack: Bool {
+        scrobblingCoordinator.hasScrobbledCurrentTrack
+    }
+
+    var scrobbleThresholdSeconds: Double {
+        scrobblingCoordinator.threshold(for: duration)
+    }
 
     @Published var wallpaperStyle: WallpaperStyle = {
         if let raw = UserDefaults.standard.string(forKey: "aura.wallpaperStyle"),
@@ -640,7 +654,7 @@ import SwiftUI
 
     // MARK: - Wallpaper & Overlay Coordination
     func scheduleWallpaperUpdate(delay: Double = 0.15) {
-        guard dynamicWallpaperEnabled, playing, activePlayerName != nil else {
+        guard !isScrobbleMode, dynamicWallpaperEnabled, playing, activePlayerName != nil else {
             wallpaperCoordinator.restore()
             DesktopOverlayManager.shared.updateOverlayState()
             NotchOverlayManager.shared.updateOverlayState()
@@ -670,6 +684,12 @@ import SwiftUI
 
     private func handlePlaybackChange() {
         restoreWallpaperTask?.cancel()
+        if isScrobbleMode {
+            wallpaperCoordinator.restore()
+            DesktopOverlayManager.shared.closeAll()
+            NotchOverlayManager.shared.closeAll()
+            return
+        }
         if playing && activePlayerName != nil {
             scheduleWallpaperUpdate(delay: 0.15)
         } else {
@@ -682,6 +702,7 @@ import SwiftUI
     }
 
     private func updateArtworkColor() {
+        guard !isScrobbleMode else { return }
         guard let image = artwork ?? fallback else { return }
         let img = image
         // Выполняем всё извлечение цветов на фоновом потоке, чтобы не блокировать main.
@@ -921,7 +942,9 @@ import SwiftUI
             onNewTrackStarted(title: title, artist: artist, duration: duration, spotifyTrackId: snapshot.trackId)
 
             // Загрузка обложки: если есть нативные байты обложки из MediaRemote, применяем их мгновенно
-            if let artData = snapshot.artworkData, let img = NSImage(data: artData) {
+            if isScrobbleMode {
+                self.artwork = nil
+            } else if let artData = snapshot.artworkData, let img = NSImage(data: artData) {
                 artworkService.store(img, for: newKey)
                 withAnimation(.easeInOut(duration: 0.35)) {
                     self.artwork = img
@@ -960,7 +983,7 @@ import SwiftUI
         playing = snapshot.isPlaying
         activePlayerName = snapshot.appName
 
-        if self.artwork == nil, let artData = snapshot.artworkData, let img = NSImage(data: artData) {
+        if !isScrobbleMode && self.artwork == nil, let artData = snapshot.artworkData, let img = NSImage(data: artData) {
             artworkService.store(img, for: newKey)
             withAnimation(.easeInOut(duration: 0.35)) {
                 self.artwork = img
@@ -1012,17 +1035,19 @@ import SwiftUI
 
     private func onNewTrackStarted(title: String, artist: String, duration: Double, spotifyTrackId: String? = nil) {
         isLiked = false
-        if source != .local && AudioAnalysisService.shared.analysisMode == .localFFT {
-            AudioAnalysisService.shared.setMode(.beatGrid)
-        }
+        if !isScrobbleMode {
+            if source != .local && AudioAnalysisService.shared.analysisMode == .localFFT {
+                AudioAnalysisService.shared.setMode(.beatGrid)
+            }
 
-        AudioAnalysisService.shared.loadTrack(
-            spotifyTrackId: spotifyTrackId,
-            title: title,
-            artist: artist,
-            duration: duration,
-            startOffset: position  // передаём текущую позицию для выравнивания ритма
-        )
+            AudioAnalysisService.shared.loadTrack(
+                spotifyTrackId: spotifyTrackId,
+                title: title,
+                artist: artist,
+                duration: duration,
+                startOffset: position  // передаём текущую позицию для выравнивания ритма
+            )
+        }
 
         scrobblingCoordinator.onNewTrackStarted(title: title, artist: artist, duration: duration, trackId: spotifyTrackId)
         exportWidgetState()
@@ -1050,10 +1075,13 @@ import SwiftUI
     // MARK: - Window Modes
     func toggleCoverMode() {
         isCoverMode.toggle()
-        if isCoverMode { isMiniPlayer = false }
+        if isCoverMode {
+            isMiniPlayer = false
+            isScrobbleMode = false
+        }
 
         DispatchQueue.main.async {
-            if let window = NSApp.keyWindow {
+            if let window = NSApplication.shared.keyWindow {
                 if self.isCoverMode && !window.styleMask.contains(.fullScreen) {
                     window.toggleFullScreen(nil)
                 } else if !self.isCoverMode && window.styleMask.contains(.fullScreen) {
@@ -1065,15 +1093,58 @@ import SwiftUI
 
     func toggleMiniPlayer() {
         isMiniPlayer.toggle()
-        if isMiniPlayer { isCoverMode = false }
+        if isMiniPlayer {
+            isCoverMode = false
+            isScrobbleMode = false
+        }
 
-        if let window = NSApp.keyWindow {
+        if let window = NSApplication.shared.keyWindow {
             window.level = isMiniPlayer ? .floating : .normal
         }
     }
 
+    func toggleScrobbleMode() {
+        isScrobbleMode.toggle()
+    }
+
+    private func handleScrobbleModeChange() {
+        if isScrobbleMode {
+            if isCoverMode { isCoverMode = false }
+            if isMiniPlayer { isMiniPlayer = false }
+            DesktopOverlayManager.shared.closeAll()
+            NotchOverlayManager.shared.closeAll()
+            wallpaperCoordinator.restore()
+            artworkTask?.cancel()
+            artwork = nil
+            artworkColor = nil
+            artworkPalette = []
+
+            DispatchQueue.main.async {
+                // Выход из полноэкранного режима если активен
+                if let window = NSApplication.shared.keyWindow, window.styleMask.contains(.fullScreen) {
+                    window.toggleFullScreen(nil)
+                }
+                // Скрываем главное окно — приложение работает в фоне через строку меню
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    WindowCloseHandler.shared.hideMainWindow()
+                }
+            }
+        } else {
+            // Возвращаем главное окно
+            DispatchQueue.main.async {
+                WindowCloseHandler.shared.showMainWindow()
+            }
+            DesktopOverlayManager.shared.updateOverlayState()
+            NotchOverlayManager.shared.updateOverlayState()
+            if dynamicWallpaperEnabled {
+                scheduleWallpaperUpdate(delay: 0.15)
+            }
+            poll()
+        }
+    }
+
     func fullScreen() {
-        NSApp.keyWindow?.toggleFullScreen(nil)
+        NSApplication.shared.keyWindow?.toggleFullScreen(nil)
     }
 
     // MARK: - Widget Export & Deep Linking

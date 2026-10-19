@@ -23,6 +23,21 @@ struct TopbarView: View {
             HStack(spacing: 10) {
                 Button {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        music.toggleScrobbleMode()
+                    }
+                } label: {
+                    Label(L10n.scrobbleMode, systemImage: "leaf.fill")
+                        .font(.system(size: 11, weight: .medium))
+                        .padding(.horizontal, 11)
+                        .padding(.vertical, 6)
+                        .background(music.isScrobbleMode ? Theme.green.opacity(0.18) : Theme.cardBackground, in: RoundedRectangle(cornerRadius: 6))
+                        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(music.isScrobbleMode ? Theme.green.opacity(0.5) : Theme.cardBorder))
+                }
+                .buttonStyle(.plain)
+                .help("Cmd+Shift+S")
+
+                Button {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                         music.toggleMiniPlayer()
                     }
                 } label: {

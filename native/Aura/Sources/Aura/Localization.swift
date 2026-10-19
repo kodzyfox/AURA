@@ -126,6 +126,48 @@ public struct L10n {
     public static var miniPlayer: String {
         current == .ru ? "Мини-плеер" : "Mini-Player"
     }
+    public static var scrobbleMode: String {
+        current == .ru ? "Режим скроблинга" : "Scrobble Mode"
+    }
+    public static var scrobbleModeSubtitle: String {
+        current == .ru ? "Экономичный режим: без обложек и свечений, фоновый скробблинг на Last.fm" : "Eco mode: no covers or glows, low-power Last.fm scrobbler"
+    }
+    public static var scrobbleModeActive: String {
+        current == .ru ? "Режим скроблинга активен" : "Scrobble Mode Active"
+    }
+    public static var scrobbleModeExit: String {
+        current == .ru ? "Обычный режим" : "Standard Mode"
+    }
+    public static var scrobbleModeEcoBadge: String {
+        current == .ru ? "ЭКО-РЕЖИМ · LAST.FM" : "ECO MODE · LAST.FM"
+    }
+    public static var scrobbleModeEcoDescription: String {
+        current == .ru ? "Обложки, свечения и визуальные эффекты отключены. Aura работает с минимальной нагрузкой на процессор и аккумулятор." : "Covers, glows, and visuals are disabled. Aura runs with minimal CPU and battery usage."
+    }
+    public static var scrobbleThresholdLabel: String {
+        current == .ru ? "Порог скроббла" : "Scrobble Threshold"
+    }
+    public static var scrobbleStatusWaiting: String {
+        current == .ru ? "Ожидание порога (50%)" : "Waiting for threshold (50%)"
+    }
+    public static var scrobbleStatusSent: String {
+        current == .ru ? "Скроббл отправлен на Last.fm" : "Scrobbled to Last.fm"
+    }
+    public static var scrobbleModeCardTitle: String {
+        current == .ru ? "Режим скроблинга (Энергосбережение)" : "Scrobble Mode (Power Saving)"
+    }
+    public static var scrobbleModeCardDesc: String {
+        current == .ru ? "Отключает обложку, оверлеи и свечения экрана, превращая Aura в сверхэкономичный скроблер для Last.fm без лишней нагрузки на Mac." : "Disables artwork, overlays, and screen glows, turning Aura into an ultra-low-power Last.fm scrobbler without Mac overhead."
+    }
+    public static var scrobbleModeEnable: String {
+        current == .ru ? "Включить режим скроблинга" : "Enable Scrobble Mode"
+    }
+    public static var scrobbleModeDisable: String {
+        current == .ru ? "Отключить режим скроблинга" : "Disable Scrobble Mode"
+    }
+    public static var scrobbleEcoMetrics: String {
+        current == .ru ? "0% GPU · Энергосбережение" : "0% GPU · Power Saving"
+    }
     public static var resetSettings: String {
         current == .ru ? "Сбросить настройки" : "Reset Settings"
     }
@@ -366,6 +408,9 @@ public struct L10n {
     }
     public static var menuFullscreenCover: String {
         current == .ru ? "Режим обложки на весь экран" : "Fullscreen Cover Mode"
+    }
+    public static var menuScrobbleMode: String {
+        current == .ru ? "Режим скроблинга (Эко)" : "Scrobble Mode (Eco)"
     }
     public static var menuTheme: String {
         current == .ru ? "Тема оформления" : "Appearance Theme"

@@ -275,6 +275,9 @@ struct LastFMView: View {
             .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.cardBorder, lineWidth: 1))
             
+            // Эко-режим скроблинга
+            scrobbleModeCard
+
             // Музыкальная аналитика вкусов (Топ артистов и жанров)
             analyticsSection
             
@@ -726,7 +729,72 @@ struct LastFMView: View {
             .padding(20)
             .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.cardBorder, lineWidth: 1))
+            
+            // Эко-режим скроблинга
+            scrobbleModeCard
         }
+    }
+    
+    // MARK: - Карточка режима скроблинга (Эко)
+    private var scrobbleModeCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                HStack(spacing: 8) {
+                    Image(systemName: "leaf.fill")
+                        .foregroundStyle(Theme.green)
+                    Text(L10n.scrobbleModeCardTitle)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Theme.textPrimary)
+                }
+                Spacer()
+                if music.isScrobbleMode {
+                    HStack(spacing: 4) {
+                        Circle().fill(Theme.green).frame(width: 6, height: 6)
+                        Text(L10n.scrobbleModeActive)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Theme.green)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Theme.green.opacity(0.15), in: Capsule())
+                }
+            }
+            
+            Text(L10n.scrobbleModeCardDesc)
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            
+            HStack {
+                Button {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        music.toggleScrobbleMode()
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: music.isScrobbleMode ? "arrow.up.forward.app" : "leaf.fill")
+                        Text(music.isScrobbleMode ? L10n.scrobbleModeDisable : L10n.scrobbleModeEnable)
+                    }
+                    .font(.system(size: 11, weight: .medium))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(music.isScrobbleMode ? Theme.green.opacity(0.2) : Theme.accent.opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
+                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(music.isScrobbleMode ? Theme.green.opacity(0.5) : Theme.accent.opacity(0.3), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(music.isScrobbleMode ? Theme.green : Theme.accent)
+                
+                Spacer()
+                
+                Text(L10n.scrobbleModeEcoBadge)
+                    .font(.system(size: 9, weight: .bold))
+                    .tracking(1.2)
+                    .foregroundStyle(Theme.textTertiary)
+            }
+        }
+        .padding(20)
+        .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(music.isScrobbleMode ? Theme.green.opacity(0.4) : Theme.cardBorder, lineWidth: 1))
     }
     
     private func periodButton(key: String, title: String) -> some View {

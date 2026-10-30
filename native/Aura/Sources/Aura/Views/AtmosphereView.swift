@@ -3,12 +3,13 @@ import SwiftUI
 struct AtmosphereView: View {
     @EnvironmentObject var music: MusicController
     @ObservedObject private var analysis = AudioAnalysisService.shared
+    @ObservedObject private var windowHandler = WindowCloseHandler.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
-        // TimelineView работает непрерывно в режиме предпросмотра (приостанавливается только при Reduce Motion в macOS)
-        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { context in
-            let t = reduceMotion ? 0 : context.date.timeIntervalSinceReferenceDate * (0.25 + music.settings.speed * 0.6)
+        let isPaused = reduceMotion || !windowHandler.isWindowEffectivelyVisible || !music.playing || music.isScreenLocked
+        TimelineView(.animation(minimumInterval: PerformanceManager.shared.overlayFrameInterval, paused: isPaused)) { context in
+            let t = isPaused ? 0 : context.date.timeIntervalSinceReferenceDate * (0.25 + music.settings.speed * 0.6)
             let currentPos = music.currentPlaybackPosition(at: context.date)
             
             // Расчет аудио-реактивности в такт музыке (Spotify Audio Analysis / Smart Beat-Grid)

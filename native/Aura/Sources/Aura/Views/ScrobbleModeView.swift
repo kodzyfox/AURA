@@ -12,6 +12,7 @@ struct ScrobbleModeView: View {
     @ObservedObject var lastfm = LastFMService.shared
     @ObservedObject var performance = PerformanceManager.shared
 
+    @State private var tickDate = Date()
     private let timer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
     private let lastFMRed = Color(red: 0.88, green: 0.12, blue: 0.15)
 
@@ -33,8 +34,8 @@ struct ScrobbleModeView: View {
             .padding(20)
         }
         .frame(minWidth: 440, maxWidth: 620, minHeight: 320, maxHeight: 480)
-        .onReceive(timer) { _ in
-            music.poll()
+        .onReceive(timer) { date in
+            tickDate = date
         }
     }
 
@@ -156,7 +157,7 @@ struct ScrobbleModeView: View {
                 GeometryReader { geo in
                     let totalWidth = geo.size.width
                     let duration = max(1.0, music.duration)
-                    let currentPos = min(duration, max(0.0, music.position))
+                    let currentPos = min(duration, max(0.0, music.currentPlaybackPosition(at: tickDate)))
                     let progressFraction = min(1.0, currentPos / duration)
                     let thresholdFraction = min(1.0, music.scrobbleThresholdSeconds / duration)
                     let isScrobbled = music.hasScrobbledCurrentTrack
@@ -183,7 +184,7 @@ struct ScrobbleModeView: View {
 
                 // Время и статус достижения порога
                 HStack {
-                    Text(timestamp(music.position))
+                    Text(timestamp(min(music.duration, max(0.0, music.currentPlaybackPosition(at: tickDate)))))
                         .font(.system(size: 10, weight: .medium, design: .monospaced))
                         .foregroundStyle(Theme.textTertiary)
 
@@ -199,7 +200,8 @@ struct ScrobbleModeView: View {
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundStyle(Theme.green)
                         } else if music.playing && music.duration >= 30.0 {
-                            let remaining = max(0, Int(music.scrobbleThresholdSeconds - music.position))
+                            let currentPos = min(music.duration, max(0.0, music.currentPlaybackPosition(at: tickDate)))
+                            let remaining = max(0, Int(music.scrobbleThresholdSeconds - currentPos))
                             Image(systemName: "arrow.up.circle.fill")
                                 .font(.system(size: 10))
                                 .foregroundStyle(Theme.accent)
@@ -356,6 +358,27 @@ struct ScrobbleModeView: View {
 
                     Spacer()
                 }
+            }
+
+            Divider().opacity(0.3)
+
+            // Переключатель чёлки в эко-режиме
+            HStack {
+                HStack(spacing: 7) {
+                    Image(systemName: "macbook.gen2")
+                        .font(.system(size: 11))
+                        .foregroundStyle(music.scrobbleModeNotchEnabled ? Theme.accent : Theme.textTertiary)
+                    Text(L10n.current == .ru ? "Чёлка (Dynamic Island) в эко-режиме" : "Dynamic Island Notch in Eco Mode")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Theme.textPrimary)
+                }
+
+                Spacer()
+
+                Toggle("", isOn: $music.scrobbleModeNotchEnabled)
+                    .toggleStyle(SwitchToggleStyle(tint: Theme.accent))
+                    .controlSize(.mini)
+                    .labelsHidden()
             }
 
             Divider().opacity(0.3)

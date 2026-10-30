@@ -125,7 +125,7 @@ struct DesktopAmbientOverlayView: View {
     }
     
     var body: some View {
-        let isPaused = reduceMotion || !music.playing || (!music.settings.edgeGlow && !music.settings.animatedDesktopCover)
+        let isPaused = reduceMotion || !music.playing || music.isScreenLocked || (!music.settings.edgeGlow && !music.settings.animatedDesktopCover)
         let performance = PerformanceManager.shared
         TimelineView(.animation(minimumInterval: performance.overlayFrameInterval, paused: isPaused)) { context in
             let t = isPaused ? 0 : context.date.timeIntervalSinceReferenceDate
@@ -153,8 +153,10 @@ struct DesktopAmbientOverlayView: View {
                     .transition(.opacity)
                 }
                 
-                // 2. Парящая обложка и атмосферные эффекты по центру рабочего стола
-                if music.settings.animatedDesktopCover && music.playing && music.activePlayerName != nil {
+                // 2. Парящая обложка и атмосферные эффекты по центру рабочего стола (отключаем на батарее при активном энергосбережении)
+                let showDesktopCover = music.settings.animatedDesktopCover &&
+                    (!performance.isOnBattery || !performance.disableExpensiveEffectsOnBattery)
+                if showDesktopCover && music.playing && music.activePlayerName != nil {
                     GeometryReader { geo in
                         desktopFloatingScene(geo: geo, t: t, currentPos: currentPos)
                     }

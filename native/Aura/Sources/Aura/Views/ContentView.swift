@@ -13,8 +13,6 @@ struct ContentView: View {
     @State private var showQueueSheet = false
     @State private var isDragTargeted = false
     
-    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    
     var body: some View {
         ZStack(alignment: .top) {
             if music.isMiniPlayer {
@@ -94,7 +92,6 @@ struct ContentView: View {
             }
         }
         .foregroundStyle(Theme.textPrimary)
-        .onReceive(timer) { _ in music.poll() }
         .onAppear {
             if !hasCompletedOnboarding {
                 showOnboarding = true

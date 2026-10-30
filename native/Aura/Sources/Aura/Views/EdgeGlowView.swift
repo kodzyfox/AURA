@@ -1,7 +1,39 @@
 import SwiftUI
 
 // MARK: - Хелпер тонкой настройки HSB для насыщенного свечения без белесых вымываний
-fileprivate extension Color {
+fileprivate struct HSBAColor: Equatable {
+    let h: Double
+    let s: Double
+    let b: Double
+    let a: Double
+
+    private static var cache: [Color: HSBAColor] = [:]
+    private static let lock = NSLock()
+
+    static func get(_ color: Color) -> HSBAColor {
+        lock.lock()
+        defer { lock.unlock() }
+        if let cached = cache[color] {
+            return cached
+        }
+        let created = HSBAColor(color)
+        if cache.count > 50 {
+            cache.removeAll(keepingCapacity: true)
+        }
+        cache[color] = created
+        return created
+    }
+
+    private init(_ color: Color) {
+        let ns = NSColor(color).usingColorSpace(.sRGB) ?? NSColor(color)
+        var hVal: CGFloat = 0, sVal: CGFloat = 0, bVal: CGFloat = 0, aVal: CGFloat = 0
+        ns.getHue(&hVal, saturation: &sVal, brightness: &bVal, alpha: &aVal)
+        self.h = Double(hVal)
+        self.s = Double(sVal)
+        self.b = Double(bVal)
+        self.a = Double(aVal)
+    }
+
     func adjusted(
         hueOffset: Double = 0,
         satMultiplier: Double = 1.0,
@@ -9,16 +41,12 @@ fileprivate extension Color {
         briOffset: Double = 0,
         minBri: Double = 0.0
     ) -> Color {
-        let ns = NSColor(self).usingColorSpace(.sRGB) ?? NSColor(self)
-        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        ns.getHue(&h, saturation: &s, brightness: &b, alpha: &a)
-        
-        let isMonochrome = Double(s) < 0.06
+        let isMonochrome = s < 0.06
         let effectiveMinSat = isMonochrome ? 0.0 : minSat
-        let newH = fmod(Double(h) + hueOffset + 1.0, 1.0)
-        let newS = min(1.0, max(effectiveMinSat, Double(s) * satMultiplier))
-        let newB = min(1.0, max(minBri, Double(b) + briOffset))
-        return Color(hue: newH, saturation: newS, brightness: newB, opacity: Double(a))
+        let newH = fmod(h + hueOffset + 1.0, 1.0)
+        let newS = min(1.0, max(effectiveMinSat, s * satMultiplier))
+        let newB = min(1.0, max(minBri, b + briOffset))
+        return Color(hue: newH, saturation: newS, brightness: newB, opacity: a)
     }
 }
 
@@ -36,6 +64,39 @@ struct EdgeGlowView: View {
     var sensitivity: Double = 1.0
     let colorIndex: Int
     let reduceMotion: Bool
+
+    private let baseHSBA: HSBAColor
+    private let paletteHSBA: [HSBAColor]
+
+    init(
+        baseColor: Color,
+        palette: [Color] = [],
+        opacity: Double,
+        thickness: Double,
+        speed: Double,
+        time: Double,
+        trackPosition: Double = 0.0,
+        isPlaying: Bool,
+        audioReactive: Bool = true,
+        sensitivity: Double = 1.0,
+        colorIndex: Int,
+        reduceMotion: Bool
+    ) {
+        self.baseColor = baseColor
+        self.palette = palette
+        self.opacity = opacity
+        self.thickness = thickness
+        self.speed = speed
+        self.time = time
+        self.trackPosition = trackPosition
+        self.isPlaying = isPlaying
+        self.audioReactive = audioReactive
+        self.sensitivity = sensitivity
+        self.colorIndex = colorIndex
+        self.reduceMotion = reduceMotion
+        self.baseHSBA = HSBAColor.get(baseColor)
+        self.paletteHSBA = palette.map { HSBAColor.get($0) }
+    }
     
     // Вычисление динамических переливающихся оттенков с честной синхронизацией с музыкой
     private var shiftingColors: (Color, Color, Color, Color) {
@@ -109,17 +170,17 @@ struct EdgeGlowView: View {
         default:
             // Режим 0: «Обложка» или фиксированные палитры (4: Янтарь, 5: Неон циан, 6: Пурпур, 7: Изумруд)
             // Исключаем белый цвет полностью: свечение строго передает сочные оттенки обложки
-            if colorIndex == 0 && palette.count >= 2 {
-                let p0 = palette[0].adjusted(minSat: 0.65, briOffset: beatImpact * 0.10, minBri: 0.82)
-                let p1 = palette[1].adjusted(minSat: 0.65, briOffset: beatImpact * 0.08, minBri: 0.80)
-                let p2 = (palette.count > 2 ? palette[2] : palette[0]).adjusted(minSat: 0.65, briOffset: beatImpact * 0.10, minBri: 0.82)
-                let p3 = (palette.count > 3 ? palette[3] : palette[1]).adjusted(minSat: 0.65, briOffset: beatImpact * 0.08, minBri: 0.80)
+            if colorIndex == 0 && paletteHSBA.count >= 2 {
+                let p0 = paletteHSBA[0].adjusted(minSat: 0.65, briOffset: beatImpact * 0.10, minBri: 0.82)
+                let p1 = paletteHSBA[1].adjusted(minSat: 0.65, briOffset: beatImpact * 0.08, minBri: 0.80)
+                let p2 = (paletteHSBA.count > 2 ? paletteHSBA[2] : paletteHSBA[0]).adjusted(minSat: 0.65, briOffset: beatImpact * 0.10, minBri: 0.82)
+                let p3 = (paletteHSBA.count > 3 ? paletteHSBA[3] : paletteHSBA[1]).adjusted(minSat: 0.65, briOffset: beatImpact * 0.08, minBri: 0.80)
                 return (p0, p1, p2, p3)
             } else {
-                let c1 = baseColor.adjusted(minSat: 0.65, briOffset: beatImpact * 0.12, minBri: 0.82)
-                let c2 = baseColor.adjusted(hueOffset: 0.05 + kickBoost * 0.05, satMultiplier: 0.95, minSat: 0.60, briOffset: beatImpact * 0.08, minBri: 0.78)
-                let c3 = baseColor.adjusted(hueOffset: -0.04 - kickBoost * 0.04, satMultiplier: 1.05, minSat: 0.68, briOffset: beatImpact * 0.10, minBri: 0.80)
-                let c4 = baseColor.adjusted(hueOffset: 0.09, satMultiplier: 0.90, minSat: 0.55, briOffset: beatImpact * 0.06, minBri: 0.74)
+                let c1 = baseHSBA.adjusted(minSat: 0.65, briOffset: beatImpact * 0.12, minBri: 0.82)
+                let c2 = baseHSBA.adjusted(hueOffset: 0.05 + kickBoost * 0.05, satMultiplier: 0.95, minSat: 0.60, briOffset: beatImpact * 0.08, minBri: 0.78)
+                let c3 = baseHSBA.adjusted(hueOffset: -0.04 - kickBoost * 0.04, satMultiplier: 1.05, minSat: 0.68, briOffset: beatImpact * 0.10, minBri: 0.80)
+                let c4 = baseHSBA.adjusted(hueOffset: 0.09, satMultiplier: 0.90, minSat: 0.55, briOffset: beatImpact * 0.06, minBri: 0.74)
                 return (c1, c2, c3, c4)
             }
         }
@@ -258,14 +319,17 @@ struct EdgeGlowView: View {
                 .frame(width: glowSize)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 
-                // 5. Угловые глубокие ореолы для бесшовного соединения периметра
-                RadialGradient(colors: [col1.opacity(currentAlpha * 0.90), .clear], center: .topLeading, startRadius: 0, endRadius: glowSize * 1.6)
-                RadialGradient(colors: [col2.opacity(currentAlpha * 0.90), .clear], center: .topTrailing, startRadius: 0, endRadius: glowSize * 1.6)
-                RadialGradient(colors: [col3.opacity(currentAlpha * 0.90), .clear], center: .bottomLeading, startRadius: 0, endRadius: glowSize * 1.6)
-                RadialGradient(colors: [col4.opacity(currentAlpha * 0.90), .clear], center: .bottomTrailing, startRadius: 0, endRadius: glowSize * 1.6)
+                // 5. Угловые глубокие ореолы (рендерим только при питании от сети для экономии аккумулятора)
+                if PerformanceManager.shared.shouldUseExpensiveEffects {
+                    RadialGradient(colors: [col1.opacity(currentAlpha * 0.90), .clear], center: .topLeading, startRadius: 0, endRadius: glowSize * 1.6)
+                    RadialGradient(colors: [col2.opacity(currentAlpha * 0.90), .clear], center: .topTrailing, startRadius: 0, endRadius: glowSize * 1.6)
+                    RadialGradient(colors: [col3.opacity(currentAlpha * 0.90), .clear], center: .bottomLeading, startRadius: 0, endRadius: glowSize * 1.6)
+                    RadialGradient(colors: [col4.opacity(currentAlpha * 0.90), .clear], center: .bottomTrailing, startRadius: 0, endRadius: glowSize * 1.6)
+                }
             }
             .ignoresSafeArea()
             .allowsHitTesting(false)
+            .drawingGroup(opaque: false)
         }
     }
 }

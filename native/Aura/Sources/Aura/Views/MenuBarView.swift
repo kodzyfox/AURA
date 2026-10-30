@@ -9,7 +9,7 @@ struct MenuBarView: View {
     private let lastFMRed = Color(red: 0.88, green: 0.12, blue: 0.15)
     private let panelWidth: CGFloat = 315
     private var panelHeight: CGFloat {
-        music.isScrobbleMode ? 200 : 355
+        music.isScrobbleMode ? 240 : 355
     }
 
     var body: some View {
@@ -23,15 +23,18 @@ struct MenuBarView: View {
         .frame(width: panelWidth, height: panelHeight, alignment: .top)
         .background(
             WindowAccessor { window in
-                guard window.frame.width > 50 && window.frame.height > 50 else { return }
+                guard window.isVisible, window.frame.width > 50 && window.frame.height > 50 else { return }
                 let targetSize = NSSize(width: panelWidth, height: panelHeight)
-                if abs(window.frame.width - targetSize.width) > 1 || abs(window.frame.height - targetSize.height) > 1 {
-                    let newOriginY = window.frame.maxY - targetSize.height
-                    window.setFrame(
-                        NSRect(x: window.frame.minX, y: newOriginY, width: targetSize.width, height: targetSize.height),
-                        display: true,
-                        animate: false
-                    )
+                if abs(window.frame.width - targetSize.width) > 2 || abs(window.frame.height - targetSize.height) > 2 {
+                    DispatchQueue.main.async {
+                        guard window.isVisible else { return }
+                        let newOriginY = window.frame.maxY - targetSize.height
+                        window.setFrame(
+                            NSRect(x: window.frame.minX, y: newOriginY, width: targetSize.width, height: targetSize.height),
+                            display: true,
+                            animate: false
+                        )
+                    }
                 }
             }
         )
@@ -171,6 +174,20 @@ struct MenuBarView: View {
                     }
                 }
             }
+
+            // Переключатель чёлки в эко-режиме
+            Toggle(isOn: $music.scrobbleModeNotchEnabled) {
+                HStack(spacing: 6) {
+                    Image(systemName: "macbook.gen2")
+                        .font(.system(size: 11))
+                        .foregroundStyle(music.scrobbleModeNotchEnabled ? Theme.accent : Theme.textTertiary)
+                    Text(L10n.current == .ru ? "Чёлка (Dynamic Island)" : "Dynamic Island Notch")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Theme.textPrimary)
+                }
+            }
+            .toggleStyle(SwitchToggleStyle(tint: Theme.accent))
+            .controlSize(.mini)
 
             Divider().opacity(0.4)
 

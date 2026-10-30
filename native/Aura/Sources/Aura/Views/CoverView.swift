@@ -40,7 +40,7 @@ struct CoverView: View {
                 }
                 
                 // 2. Весь анимированный контент сверху
-                TimelineView(.animation(minimumInterval: PerformanceManager.shared.overlayFrameInterval, paused: reduceMotion || !music.playing)) { context in
+                TimelineView(.animation(minimumInterval: PerformanceManager.shared.overlayFrameInterval, paused: reduceMotion || !music.playing || music.isScreenLocked)) { context in
                     let t = reduceMotion || !music.playing ? 0 : context.date.timeIntervalSinceReferenceDate
                     let currentPos = music.currentPlaybackPosition(at: context.date)
                     

@@ -70,10 +70,7 @@ enum VisualQuality: String, CaseIterable, Identifiable, Codable {
         // При умеренном нагреве (.fair) переходим на сбалансированный режим, не ждём критического
         if thermalState == .fair { return .balanced }
         if isOnBattery && disableExpensiveEffectsOnBattery {
-            if let pct = batteryPercent, pct <= 20 {
-                return .low
-            }
-            return .balanced
+            return .low
         }
         if screenCount > 1 { return .balanced }
         return .high

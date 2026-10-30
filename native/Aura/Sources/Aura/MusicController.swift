@@ -49,8 +49,9 @@ import SwiftUI
                 }
                 handlePlaybackChange()
                 DesktopOverlayManager.shared.updateOverlayState()
-            NotchOverlayManager.shared.updateOverlayState()
+                NotchOverlayManager.shared.updateOverlayState()
                 exportWidgetState()
+                updateTimerIntervalIfNeeded()
             }
         }
     }
@@ -103,6 +104,29 @@ import SwiftUI
         didSet {
             UserDefaults.standard.set(isScrobbleMode, forKey: "aura.isScrobbleMode")
             handleScrobbleModeChange()
+        }
+    }
+    @Published var scrobbleModeNotchEnabled: Bool = {
+        if UserDefaults.standard.object(forKey: "aura.scrobbleModeNotch") == nil {
+            return true
+        }
+        return UserDefaults.standard.bool(forKey: "aura.scrobbleModeNotch")
+    }() {
+        didSet {
+            UserDefaults.standard.set(scrobbleModeNotchEnabled, forKey: "aura.scrobbleModeNotch")
+            if isScrobbleMode {
+                if scrobbleModeNotchEnabled {
+                    poll()
+                } else {
+                    NotchOverlayManager.shared.closeAll()
+                    artworkTask?.cancel()
+                    artwork = nil
+                    artworkColor = nil
+                    artworkPalette = []
+                }
+            } else {
+                NotchOverlayManager.shared.updateOverlayState()
+            }
         }
     }
     @Published var isScreenLocked: Bool = false
@@ -195,6 +219,8 @@ import SwiftUI
     private var pollCount = 0
     private var activityAssertion: NSObjectProtocol?
     private var backgroundTimer: Timer?
+    private var currentTimerInterval: Double = 2.0
+    private var cancellables = Set<AnyCancellable>()
 
     private let demos: [(String, String, Double)] = [
         ("Weightless", "Marconi Union", 489),
@@ -202,10 +228,14 @@ import SwiftUI
         ("An Ending (Ascent)", "Brian Eno", 266)
     ]
 
-    var fallback: NSImage? {
+    private static let cachedFallback: NSImage? = {
         Bundle.main.url(forResource: "aura_cover", withExtension: "jpg").flatMap { NSImage(contentsOf: $0) }
             ?? Bundle.main.url(forResource: "desert", withExtension: "jpg").flatMap { NSImage(contentsOf: $0) }
             ?? Bundle.main.url(forResource: "AppIcon", withExtension: "png").flatMap { NSImage(contentsOf: $0) }
+    }()
+
+    var fallback: NSImage? {
+        Self.cachedFallback
     }
 
     var currentTrackKey: String {
@@ -284,6 +314,45 @@ import SwiftUI
             }
         }
 
+        // Сон дисплеев и заставка (полная приостановка анимаций)
+        DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name("com.apple.screensaver.didstart"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.isScreenLocked = true
+            }
+        }
+
+        DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name("com.apple.screensaver.didstop"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.isScreenLocked = false
+            }
+        }
+
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.screensDidSleepNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.isScreenLocked = true
+            }
+        }
+
+        // Наблюдение за изменением источника питания (Сеть / Батарея)
+        PerformanceManager.shared.$isOnBattery
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.updateTimerIntervalIfNeeded()
+            }
+            .store(in: &cancellables)
+
         // Реакция на выход из сна Mac
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,
@@ -291,6 +360,7 @@ import SwiftUI
             queue: .main
         ) { [weak self] _ in
             DispatchQueue.main.async {
+                self?.isScreenLocked = false
                 self?.isPollingInFlight = false
                 self?.poll()
                 Task {
@@ -306,6 +376,7 @@ import SwiftUI
             queue: .main
         ) { [weak self] _ in
             DispatchQueue.main.async {
+                self?.isScreenLocked = false
                 self?.isPollingInFlight = false
                 self?.poll()
             }
@@ -334,10 +405,29 @@ import SwiftUI
         updateArtworkColor()
         poll()
 
-        // Фоновый опрос плееров и обновление статуса.
-        // Используем интервал 2 сек для снижения нагрузки на CPU;
-        // уведомления от MediaRemote и Spotify обеспечивают мгновенную реакцию.
-        let timer = Timer(timeInterval: 2.0, repeats: true) { [weak self] _ in
+        // Адаптивный фоновый опрос плееров с экономией энергии
+        updateTimerIntervalIfNeeded()
+    }
+
+    /// Динамический интервал опроса: снижает пробуждения CPU и AppleScript в разы при паузе или работе от аккумулятора.
+    func updateTimerIntervalIfNeeded() {
+        let desiredInterval: Double
+        if !playing {
+            // Воспроизведение на паузе: системные события Spotify/Apple Music придут мгновенно.
+            // Редкий опрос раз в 10 сек служит только резервной защитой, не расходуя аккумулятор.
+            desiredInterval = 10.0
+        } else if PerformanceManager.shared.isOnBattery {
+            // На батарее: позиция плавно интерполируется математически через currentPlaybackPosition без нагрузки на CPU.
+            // Опрос раз в 4 сек снижает нагрузку на AppleScript и процессор в 2 раза.
+            desiredInterval = 4.0
+        } else {
+            desiredInterval = 2.0
+        }
+
+        guard abs(currentTimerInterval - desiredInterval) > 0.1 || backgroundTimer == nil else { return }
+        currentTimerInterval = desiredInterval
+        backgroundTimer?.invalidate()
+        let timer = Timer(timeInterval: desiredInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.poll()
             }
@@ -687,7 +777,11 @@ import SwiftUI
         if isScrobbleMode {
             wallpaperCoordinator.restore()
             DesktopOverlayManager.shared.closeAll()
-            NotchOverlayManager.shared.closeAll()
+            if scrobbleModeNotchEnabled {
+                NotchOverlayManager.shared.updateOverlayState()
+            } else {
+                NotchOverlayManager.shared.closeAll()
+            }
             return
         }
         if playing && activePlayerName != nil {
@@ -702,7 +796,7 @@ import SwiftUI
     }
 
     private func updateArtworkColor() {
-        guard !isScrobbleMode else { return }
+        guard !isScrobbleMode || scrobbleModeNotchEnabled else { return }
         guard let image = artwork ?? fallback else { return }
         let img = image
         // Выполняем всё извлечение цветов на фоновом потоке, чтобы не блокировать main.
@@ -942,7 +1036,7 @@ import SwiftUI
             onNewTrackStarted(title: title, artist: artist, duration: duration, spotifyTrackId: snapshot.trackId)
 
             // Загрузка обложки: если есть нативные байты обложки из MediaRemote, применяем их мгновенно
-            if isScrobbleMode {
+            if isScrobbleMode && !scrobbleModeNotchEnabled {
                 self.artwork = nil
             } else if let artData = snapshot.artworkData, let img = NSImage(data: artData) {
                 artworkService.store(img, for: newKey)
@@ -983,10 +1077,14 @@ import SwiftUI
         playing = snapshot.isPlaying
         activePlayerName = snapshot.appName
 
-        if !isScrobbleMode && self.artwork == nil, let artData = snapshot.artworkData, let img = NSImage(data: artData) {
-            artworkService.store(img, for: newKey)
-            withAnimation(.easeInOut(duration: 0.35)) {
-                self.artwork = img
+        if (!isScrobbleMode || scrobbleModeNotchEnabled) && self.artwork == nil {
+            if let artData = snapshot.artworkData, let img = NSImage(data: artData) {
+                artworkService.store(img, for: newKey)
+                withAnimation(.easeInOut(duration: 0.35)) {
+                    self.artwork = img
+                }
+            } else if artworkTask == nil {
+                loadArtwork(key: newKey, directUrl: snapshot.artworkURL, isSpotify: isSpotify)
             }
         }
 
@@ -1007,6 +1105,7 @@ import SwiftUI
         }
 
         artworkTask = Task { @MainActor [weak self] in
+            defer { self?.artworkTask = nil }
             guard let self = self else { return }
             let image: NSImage?
             if isSpotify {
@@ -1112,12 +1211,17 @@ import SwiftUI
             if isCoverMode { isCoverMode = false }
             if isMiniPlayer { isMiniPlayer = false }
             DesktopOverlayManager.shared.closeAll()
-            NotchOverlayManager.shared.closeAll()
             wallpaperCoordinator.restore()
-            artworkTask?.cancel()
-            artwork = nil
-            artworkColor = nil
-            artworkPalette = []
+            if scrobbleModeNotchEnabled {
+                NotchOverlayManager.shared.updateOverlayState()
+                updateArtworkColor()
+            } else {
+                NotchOverlayManager.shared.closeAll()
+                artworkTask?.cancel()
+                artwork = nil
+                artworkColor = nil
+                artworkPalette = []
+            }
 
             DispatchQueue.main.async {
                 // Выход из полноэкранного режима если активен

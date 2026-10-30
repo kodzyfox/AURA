@@ -66,4 +66,13 @@ final class ScrobbleModeTests: XCTestCase {
         music.duration = 600.0
         XCTAssertEqual(music.scrobbleThresholdSeconds, 240.0)
     }
+
+    func testScrobbleModeNotchToggle() {
+        let music = MusicController()
+        let initialNotch = music.scrobbleModeNotchEnabled
+        music.scrobbleModeNotchEnabled.toggle()
+        XCTAssertEqual(music.scrobbleModeNotchEnabled, !initialNotch)
+        // Reset to initial
+        music.scrobbleModeNotchEnabled = initialNotch
+    }
 }

@@ -235,6 +235,8 @@ struct NeonPulseVisualizerView: View {
     let speed: Double
     let glowScale: Double
     let intensity: Double
+
+    private static let segmentLabels: [String] = (0..<12).map { String(format: "%02d", 12 - $0) }
     
     var body: some View {
         let (c1, c2, _) = colors
@@ -259,11 +261,14 @@ struct NeonPulseVisualizerView: View {
                         ),
                         lineWidth: 1.5 + CGFloat(beatImpact * 1.8)
                     )
-                    .frame(width: size * scale, height: size * scale)
+                    .frame(width: size, height: size)
+                    .scaleEffect(scale)
                     .shadow(color: c1.opacity(alpha * 0.8), radius: 12 + CGFloat(beatImpact * 10))
             }
             
             // 2. Киберпанк-угловые скобки HUD (Targeting brackets, 1.48x)
+            let bracketBaseSize = size * 1.45
+            let bracketScale = 1.0 + CGFloat(beatImpact * 12) / max(1, bracketBaseSize)
             HUDCornerBracketsShape()
                 .stroke(
                     LinearGradient(
@@ -273,7 +278,8 @@ struct NeonPulseVisualizerView: View {
                     ),
                     lineWidth: 2.4 + CGFloat(beatImpact * 1.5)
                 )
-                .frame(width: size * 1.45 + CGFloat(beatImpact * 12), height: size * 1.45 + CGFloat(beatImpact * 12))
+                .frame(width: bracketBaseSize, height: bracketBaseSize)
+                .scaleEffect(bracketScale)
                 .shadow(color: c1, radius: 10 + CGFloat(beatImpact * 8))
             
             // 3. Угловые видоискатели и перекрестия HUD
@@ -323,48 +329,53 @@ struct NeonPulseVisualizerView: View {
             }
             .frame(width: size * 2.5)
             
-            // 5. Боковые вертикальные неоновые эквалайзеры HUD (по 12 сегментов)
-            HStack {
-                // Левый спектрограф
-                VStack(spacing: 4.5) {
-                    ForEach(0..<12, id: \.self) { i in
-                        let active = (sin(t * 4.6 + Double(i) * 0.55) + 1.0) / 2.0 + beatImpact * 0.45
-                        let isLit = active > 0.40
-                        HStack(spacing: 3) {
-                            Text(String(format: "%02d", 12 - i))
-                                .font(.system(size: 7, weight: .bold, design: .monospaced))
-                                .foregroundStyle(c1.opacity(isLit ? 0.7 : 0.2))
-                            Capsule()
-                                .fill(isLit ? c1 : c1.opacity(0.18))
-                                .frame(width: isLit ? 16 + CGFloat(active * 14) : 8, height: 3)
-                                .shadow(color: c1.opacity(isLit ? 0.85 : 0), radius: 5)
+            // 5. Боковые вертикальные неоновые эквалайзеры HUD (рендерим только при питании от сети для экономии ресурсов)
+            if PerformanceManager.shared.shouldUseExpensiveEffects {
+                HStack {
+                    // Левый спектрограф
+                    VStack(spacing: 4.5) {
+                        ForEach(0..<12, id: \.self) { i in
+                            let active = (sin(t * 4.6 + Double(i) * 0.55) + 1.0) / 2.0 + beatImpact * 0.45
+                            let isLit = active > 0.40
+                            HStack(spacing: 3) {
+                                Text(Self.segmentLabels[i])
+                                    .font(.system(size: 7, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(c1.opacity(isLit ? 0.7 : 0.2))
+                                Capsule()
+                                    .fill(isLit ? c1 : c1.opacity(0.18))
+                                    .frame(width: 30, height: 3, alignment: .leading)
+                                    .scaleEffect(x: isLit ? (0.53 + CGFloat(active * 0.47)) : 0.27, y: 1.0, anchor: .leading)
+                                    .shadow(color: c1.opacity(isLit ? 0.85 : 0), radius: 5)
+                            }
                         }
                     }
-                }
-                .offset(x: -size * 0.88)
-                
-                Spacer()
-                
-                // Правый спектрограф
-                VStack(spacing: 4.5) {
-                    ForEach(0..<12, id: \.self) { i in
-                        let active = (cos(t * 4.2 + Double(i) * 0.52) + 1.0) / 2.0 + beatImpact * 0.45
-                        let isLit = active > 0.40
-                        HStack(spacing: 3) {
-                            Capsule()
-                                .fill(isLit ? c2 : c2.opacity(0.18))
-                                .frame(width: isLit ? 16 + CGFloat(active * 14) : 8, height: 3)
-                                .shadow(color: c2.opacity(isLit ? 0.85 : 0), radius: 5)
-                            Text(String(format: "%02d", 12 - i))
-                                .font(.system(size: 7, weight: .bold, design: .monospaced))
-                                .foregroundStyle(c2.opacity(isLit ? 0.7 : 0.2))
+                    .offset(x: -size * 0.88)
+                    
+                    Spacer()
+                    
+                    // Правый спектрограф
+                    VStack(spacing: 4.5) {
+                        ForEach(0..<12, id: \.self) { i in
+                            let active = (cos(t * 4.2 + Double(i) * 0.52) + 1.0) / 2.0 + beatImpact * 0.45
+                            let isLit = active > 0.40
+                            HStack(spacing: 3) {
+                                Capsule()
+                                    .fill(isLit ? c2 : c2.opacity(0.18))
+                                    .frame(width: 30, height: 3, alignment: .trailing)
+                                    .scaleEffect(x: isLit ? (0.53 + CGFloat(active * 0.47)) : 0.27, y: 1.0, anchor: .trailing)
+                                    .shadow(color: c2.opacity(isLit ? 0.85 : 0), radius: 5)
+                                Text(Self.segmentLabels[i])
+                                    .font(.system(size: 7, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(c2.opacity(isLit ? 0.7 : 0.2))
+                            }
                         }
                     }
+                    .offset(x: size * 0.88)
                 }
-                .offset(x: size * 0.88)
+                .frame(width: size * 2.2)
             }
-            .frame(width: size * 2.2)
         }
+        .drawingGroup(opaque: false)
     }
 }
 

@@ -86,7 +86,7 @@ struct NotchGlowView: View {
     
     var body: some View {
         let performance = PerformanceManager.shared
-        let isPaused = reduceMotion || !music.playing
+        let isPaused = reduceMotion || !music.playing || music.isScreenLocked
         
         TimelineView(.animation(minimumInterval: performance.overlayFrameInterval, paused: isPaused)) { context in
             let currentPos = music.currentPlaybackPosition(at: context.date)

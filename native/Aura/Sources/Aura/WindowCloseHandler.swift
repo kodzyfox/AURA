@@ -24,20 +24,25 @@ public enum WindowCloseBehavior: String, CaseIterable, Identifiable, Codable {
     }
 }
 
-final class WindowCloseHandler: NSObject, NSWindowDelegate {
+final class WindowCloseHandler: NSObject, ObservableObject, NSWindowDelegate {
     static let shared = WindowCloseHandler()
 
     // Удерживаем сильную ссылку на главное окно, чтобы AppKit/SwiftUI не удаляли его из памяти
     var mainWindow: NSWindow?
 
-    var isWindowVisible: Bool {
-        guard let window = mainWindow else { return false }
-        return window.isVisible
+    @Published var isWindowVisible: Bool = true
+    @Published var isWindowOccluded: Bool = false
+
+    /// Окно реально видно пользователю на текущем экране (не свернуто, не скрыто и не перекрыто другими окнами на 100%)
+    var isWindowEffectivelyVisible: Bool {
+        isWindowVisible && !isWindowOccluded
     }
 
     func setup(window: NSWindow) {
         guard isCandidate(window) else { return }
         self.mainWindow = window
+        self.isWindowVisible = window.isVisible && !window.isMiniaturized
+        self.isWindowOccluded = !window.occlusionState.contains(.visible)
         window.isReleasedWhenClosed = false
         window.delegate = self
 
@@ -58,10 +63,12 @@ final class WindowCloseHandler: NSObject, NSWindowDelegate {
         switch behavior {
         case .hideToMenuBar:
             sender.orderOut(nil)
+            isWindowVisible = false
             updateDockVisibility()
             return false
         case .minimizeToDock:
             sender.miniaturize(nil)
+            isWindowVisible = false
             return false
         case .quitApp:
             WallpaperCoordinator.shared.restore()
@@ -78,6 +85,8 @@ final class WindowCloseHandler: NSObject, NSWindowDelegate {
             window.makeKeyAndOrderFront(nil)
             window.orderFrontRegardless()
             NSApp.activate(ignoringOtherApps: true)
+            isWindowVisible = true
+            isWindowOccluded = !window.occlusionState.contains(.visible)
             return
         }
 
@@ -87,13 +96,37 @@ final class WindowCloseHandler: NSObject, NSWindowDelegate {
             window.makeKeyAndOrderFront(nil)
             window.orderFrontRegardless()
             NSApp.activate(ignoringOtherApps: true)
+            isWindowVisible = true
+            isWindowOccluded = !window.occlusionState.contains(.visible)
             return
         }
     }
 
     func hideMainWindow() {
         mainWindow?.orderOut(nil)
+        isWindowVisible = false
+        isWindowOccluded = true
         updateDockVisibility()
+    }
+
+    func windowDidMiniaturize(_ notification: Notification) {
+        isWindowVisible = false
+        isWindowOccluded = true
+    }
+
+    func windowDidDeminiaturize(_ notification: Notification) {
+        isWindowVisible = true
+        if let win = mainWindow {
+            isWindowOccluded = !win.occlusionState.contains(.visible)
+        }
+    }
+
+    func windowDidChangeOcclusionState(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, isCandidate(window) else { return }
+        let occluded = !window.occlusionState.contains(.visible)
+        if self.isWindowOccluded != occluded {
+            self.isWindowOccluded = occluded
+        }
     }
 
     func updateDockVisibility() {

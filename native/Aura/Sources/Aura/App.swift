@@ -36,11 +36,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidBecomeActive(_ notification: Notification) {
         guard didFinishInitialLaunch else { return }
-        // В режиме скробблинга окно остаётся скрытым
-        let isScrobbleMode = UserDefaults.standard.bool(forKey: "aura.isScrobbleMode")
-        if !isScrobbleMode && !WindowCloseHandler.shared.isWindowVisible {
-            WindowCloseHandler.shared.showMainWindow()
-        }
+        // Не открываем главное окно автоматически при активации приложения (например, при клике на челку или оверлеи).
+        // Окно открывается пользователем через applicationShouldHandleReopen (клик по иконке в Dock), горячие клавиши или строку меню.
     }
     
     func applicationWillTerminate(_ notification: Notification) {

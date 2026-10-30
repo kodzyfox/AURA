@@ -867,6 +867,11 @@ struct OverviewSectionView: View {
                                     .font(.system(size: 10.5))
                                     .toggleStyle(.switch)
                                     .controlSize(.mini)
+                                
+                                Toggle(L10n.current == .ru ? "Работать в эко-режиме (скробблинг)" : "Work in Eco Mode (scrobbling)", isOn: $music.scrobbleModeNotchEnabled)
+                                    .font(.system(size: 10.5))
+                                    .toggleStyle(.switch)
+                                    .controlSize(.mini)
                             }
                             .padding(10)
                             .background(Color.white.opacity(0.03), in: RoundedRectangle(cornerRadius: 8))

@@ -61,11 +61,18 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
         updateOverlayState()
     }
     
+    private var isNotchAllowed: Bool {
+        guard let music = musicController else { return false }
+        if music.isScrobbleMode {
+            return music.scrobbleModeNotchEnabled && music.settings.notchGlow
+        }
+        return music.settings.notchGlow
+    }
+
     func handleTrackChanged() {
         guard let music = musicController,
-              !music.isScrobbleMode,
+              isNotchAllowed,
               music.playing,
-              music.settings.notchGlow,
               music.settings.notchHUDOnTrackChange else { return }
         
         trackChangeTimer?.invalidate()
@@ -83,12 +90,12 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
     }
     
     func updateOverlayState() {
-        guard let music = musicController, !music.isScrobbleMode else {
+        guard let music = musicController else {
             closeAll()
             return
         }
         
-        let needsNotch = music.playing && music.activePlayerName != nil && music.settings.notchGlow
+        let needsNotch = music.playing && music.activePlayerName != nil && isNotchAllowed
         if needsNotch {
             if window == nil {
                 reconfigureWindow()
@@ -100,8 +107,8 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
     
     func reconfigureWindow() {
         closeAll()
-        guard let music = musicController, !music.isScrobbleMode else { return }
-        guard music.playing && music.activePlayerName != nil && music.settings.notchGlow else { return }
+        guard let music = musicController else { return }
+        guard music.playing && music.activePlayerName != nil && isNotchAllowed else { return }
         guard let screen = NotchGeometryHelper.activeNotchScreen() else { return }
         
         let notch = NotchGeometryHelper.notchInfo(for: screen)
@@ -114,13 +121,17 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
             height: windowHeight
         )
         
-        let newWindow = NSWindow(
+        // NSPanel с .nonactivatingPanel не перехватывает системный фокус при кликах по кнопкам управления (play/pause/skip/like),
+        // благодаря чему активное окно пользователя (например, браузер или IDE) не теряет фокус и не всплывает главное окно Aura.
+        let newWindow = NSPanel(
             contentRect: windowRect,
-            styleMask: [.borderless],
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false,
             screen: screen
         )
+        newWindow.isFloatingPanel = true
+        newWindow.becomesKeyOnlyIfNeeded = true
         
         // Размещаем окно над системной строкой меню
         newWindow.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 2)

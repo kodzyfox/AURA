@@ -7,7 +7,7 @@ struct SidebarView: View {
     @ObservedObject private var updater = UpdateManager.shared
     @Binding var section: NavigationSection
     
-    private var appIconImage: NSImage? {
+    private static let cachedAppIcon: NSImage? = {
         if let url = Bundle.main.url(forResource: "AppIcon", withExtension: "png"),
            let img = NSImage(contentsOf: url) {
             return img
@@ -20,6 +20,10 @@ struct SidebarView: View {
             return NSImage(contentsOfFile: fallbackPath)
         }
         return nil
+    }()
+
+    private var appIconImage: NSImage? {
+        Self.cachedAppIcon
     }
     
     var body: some View {

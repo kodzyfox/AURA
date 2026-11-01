@@ -176,18 +176,37 @@ struct MenuBarView: View {
             }
 
             // Переключатель чёлки в эко-режиме
-            Toggle(isOn: $music.scrobbleModeNotchEnabled) {
-                HStack(spacing: 6) {
-                    Image(systemName: "macbook.gen2")
-                        .font(.system(size: 11))
-                        .foregroundStyle(music.scrobbleModeNotchEnabled ? Theme.accent : Theme.textTertiary)
-                    Text(L10n.current == .ru ? "Чёлка (Dynamic Island)" : "Dynamic Island Notch")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Theme.textPrimary)
+            VStack(alignment: .leading, spacing: 6) {
+                Toggle(isOn: $music.scrobbleModeNotchEnabled) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "macbook.gen2")
+                            .font(.system(size: 11))
+                            .foregroundStyle(music.scrobbleModeNotchEnabled ? Theme.accent : Theme.textTertiary)
+                        Text(L10n.scrobbleModeNotch)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Theme.textPrimary)
+                    }
+                }
+                .toggleStyle(SwitchToggleStyle(tint: Theme.accent))
+                .controlSize(.mini)
+
+                if music.scrobbleModeNotchEnabled {
+                    Toggle(isOn: $music.scrobbleModeNotchGlowEnabled) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "sun.max.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(music.scrobbleModeNotchGlowEnabled ? Theme.accent : Theme.textTertiary)
+                            Text(L10n.scrobbleModeNotchGlow)
+                                .font(.system(size: 10, weight: .regular))
+                                .foregroundStyle(Theme.textSecondary)
+                        }
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: Theme.accent))
+                    .controlSize(.mini)
+                    .padding(.leading, 14)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
-            .toggleStyle(SwitchToggleStyle(tint: Theme.accent))
-            .controlSize(.mini)
 
             Divider().opacity(0.4)
 

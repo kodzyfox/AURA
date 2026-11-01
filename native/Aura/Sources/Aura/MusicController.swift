@@ -129,6 +129,25 @@ import SwiftUI
             }
         }
     }
+    @Published var scrobbleModeNotchGlowEnabled: Bool = {
+        if UserDefaults.standard.object(forKey: "aura.scrobbleModeNotchGlow") == nil {
+            return false // По умолчанию свечение выреза отключено в эко-режиме для максимальной экономии энергии
+        }
+        return UserDefaults.standard.bool(forKey: "aura.scrobbleModeNotchGlow")
+    }() {
+        didSet {
+            UserDefaults.standard.set(scrobbleModeNotchGlowEnabled, forKey: "aura.scrobbleModeNotchGlow")
+            if isScrobbleMode {
+                if scrobbleModeNotchGlowEnabled {
+                    updateArtworkColor()
+                } else {
+                    artworkColor = nil
+                    artworkPalette = []
+                }
+                NotchOverlayManager.shared.updateOverlayState()
+            }
+        }
+    }
     @Published var isScreenLocked: Bool = false
 
     var hasScrobbledCurrentTrack: Bool {
@@ -796,7 +815,7 @@ import SwiftUI
     }
 
     private func updateArtworkColor() {
-        guard !isScrobbleMode || scrobbleModeNotchEnabled else { return }
+        if isScrobbleMode && (!scrobbleModeNotchEnabled || !scrobbleModeNotchGlowEnabled) { return }
         guard let image = artwork ?? fallback else { return }
         let img = image
         // Выполняем всё извлечение цветов на фоновом потоке, чтобы не блокировать main.
@@ -1214,7 +1233,9 @@ import SwiftUI
             wallpaperCoordinator.restore()
             if scrobbleModeNotchEnabled {
                 NotchOverlayManager.shared.updateOverlayState()
-                updateArtworkColor()
+                if scrobbleModeNotchGlowEnabled {
+                    updateArtworkColor()
+                }
             } else {
                 NotchOverlayManager.shared.closeAll()
                 artworkTask?.cancel()

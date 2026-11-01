@@ -64,7 +64,7 @@ final class NotchInteractiveHostingView<Content: View>: NSHostingView<Content> {
     private var isNotchAllowed: Bool {
         guard let music = musicController else { return false }
         if music.isScrobbleMode {
-            return music.scrobbleModeNotchEnabled && music.settings.notchGlow
+            return music.scrobbleModeNotchEnabled
         }
         return music.settings.notchGlow
     }

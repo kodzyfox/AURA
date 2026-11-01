@@ -363,22 +363,51 @@ struct ScrobbleModeView: View {
             Divider().opacity(0.3)
 
             // Переключатель чёлки в эко-режиме
-            HStack {
-                HStack(spacing: 7) {
-                    Image(systemName: "macbook.gen2")
-                        .font(.system(size: 11))
-                        .foregroundStyle(music.scrobbleModeNotchEnabled ? Theme.accent : Theme.textTertiary)
-                    Text(L10n.current == .ru ? "Чёлка (Dynamic Island) в эко-режиме" : "Dynamic Island Notch in Eco Mode")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Theme.textPrimary)
+            VStack(spacing: 10) {
+                HStack {
+                    HStack(spacing: 7) {
+                        Image(systemName: "macbook.gen2")
+                            .font(.system(size: 11))
+                            .foregroundStyle(music.scrobbleModeNotchEnabled ? Theme.accent : Theme.textTertiary)
+                        Text(L10n.scrobbleModeNotch)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Theme.textPrimary)
+                    }
+
+                    Spacer()
+
+                    Toggle("", isOn: $music.scrobbleModeNotchEnabled)
+                        .toggleStyle(SwitchToggleStyle(tint: Theme.accent))
+                        .controlSize(.mini)
+                        .labelsHidden()
                 }
 
-                Spacer()
+                if music.scrobbleModeNotchEnabled {
+                    HStack(alignment: .center) {
+                        HStack(spacing: 7) {
+                            Image(systemName: "sun.max.fill")
+                                .font(.system(size: 11))
+                                .foregroundStyle(music.scrobbleModeNotchGlowEnabled ? Theme.accent : Theme.textTertiary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(L10n.scrobbleModeNotchGlow)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundStyle(Theme.textPrimary)
+                                Text(L10n.scrobbleModeNotchGlowSub)
+                                    .font(.system(size: 9))
+                                    .foregroundStyle(Theme.textTertiary)
+                            }
+                        }
 
-                Toggle("", isOn: $music.scrobbleModeNotchEnabled)
-                    .toggleStyle(SwitchToggleStyle(tint: Theme.accent))
-                    .controlSize(.mini)
-                    .labelsHidden()
+                        Spacer()
+
+                        Toggle("", isOn: $music.scrobbleModeNotchGlowEnabled)
+                            .toggleStyle(SwitchToggleStyle(tint: Theme.accent))
+                            .controlSize(.mini)
+                            .labelsHidden()
+                    }
+                    .padding(.leading, 8)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
             }
 
             Divider().opacity(0.3)

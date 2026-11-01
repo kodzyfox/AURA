@@ -76,6 +76,15 @@ final class ScrobbleModeTests: XCTestCase {
         music.scrobbleModeNotchEnabled = initialNotch
     }
 
+    func testScrobbleModeNotchGlowToggle() {
+        let music = MusicController()
+        let initialGlow = music.scrobbleModeNotchGlowEnabled
+        music.scrobbleModeNotchGlowEnabled.toggle()
+        XCTAssertEqual(music.scrobbleModeNotchGlowEnabled, !initialGlow)
+        // Reset to initial
+        music.scrobbleModeNotchGlowEnabled = initialGlow
+    }
+
     func testAutomaticTerminationDisabledInInfoPlist() {
         // Проверяем, что в Info.plist отключено автоматическое и внезапное завершение macOS (TAL)
         let infoPlistURL = URL(fileURLWithPath: #filePath)

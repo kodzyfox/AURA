@@ -168,6 +168,15 @@ public struct L10n {
     public static var scrobbleEcoMetrics: String {
         current == .ru ? "0% GPU · Энергосбережение" : "0% GPU · Power Saving"
     }
+    public static var scrobbleModeNotch: String {
+        current == .ru ? "Чёлка (Dynamic Island) в эко-режиме" : "Dynamic Island Notch in Eco Mode"
+    }
+    public static var scrobbleModeNotchGlow: String {
+        current == .ru ? "Свечение выреза в эко-режиме" : "Notch Glow in Eco Mode"
+    }
+    public static var scrobbleModeNotchGlowSub: String {
+        current == .ru ? "Отключите для экономии энергии, сохранив управление треком через вырез" : "Turn off to save battery while keeping track controls via notch"
+    }
     public static var resetSettings: String {
         current == .ru ? "Сбросить настройки" : "Reset Settings"
     }

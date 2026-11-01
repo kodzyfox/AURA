@@ -868,10 +868,19 @@ struct OverviewSectionView: View {
                                     .toggleStyle(.switch)
                                     .controlSize(.mini)
                                 
-                                Toggle(L10n.current == .ru ? "Работать в эко-режиме (скробблинг)" : "Work in Eco Mode (scrobbling)", isOn: $music.scrobbleModeNotchEnabled)
+                                Toggle(L10n.scrobbleModeNotch, isOn: $music.scrobbleModeNotchEnabled)
                                     .font(.system(size: 10.5))
                                     .toggleStyle(.switch)
                                     .controlSize(.mini)
+                                
+                                if music.scrobbleModeNotchEnabled {
+                                    Toggle(L10n.scrobbleModeNotchGlow, isOn: $music.scrobbleModeNotchGlowEnabled)
+                                        .font(.system(size: 10))
+                                        .toggleStyle(.switch)
+                                        .controlSize(.mini)
+                                        .padding(.leading, 12)
+                                        .transition(.opacity)
+                                }
                             }
                             .padding(10)
                             .background(Color.white.opacity(0.03), in: RoundedRectangle(cornerRadius: 8))

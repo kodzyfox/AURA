@@ -83,14 +83,22 @@ struct NotchGlowView: View {
     private var isExpanded: Bool {
         isHovered || isTemporarilyExpanded
     }
+
+    private var shouldShowGlow: Bool {
+        if music.isScrobbleMode {
+            return music.scrobbleModeNotchGlowEnabled
+        }
+        return true
+    }
     
     var body: some View {
         let performance = PerformanceManager.shared
-        let isPaused = reduceMotion || !music.playing || music.isScreenLocked
+        let isGlowActive = shouldShowGlow || isExpanded
+        let isPaused = reduceMotion || !music.playing || music.isScreenLocked || !isGlowActive
         
         TimelineView(.animation(minimumInterval: performance.overlayFrameInterval, paused: isPaused)) { context in
             let currentPos = music.currentPlaybackPosition(at: context.date)
-            let isAudioActive = music.playing && !reduceMotion && music.settings.audioReactive
+            let isAudioActive = music.playing && !reduceMotion && music.settings.audioReactive && shouldShowGlow
             let beatImpact = isAudioActive ? AudioAnalysisService.shared.beatImpact(at: currentPos, sensitivity: music.settings.reactiveSensitivity) : 0.0
             let t = isPaused ? 0.0 : context.date.timeIntervalSinceReferenceDate * (0.4 + music.settings.speed * 0.6)
             
@@ -98,11 +106,13 @@ struct NotchGlowView: View {
             
             ZStack(alignment: .top) {
                 // 1. Неоновый ореол свечения (Halo)
-                ambientHaloLayer(glowColor: glowColor, beatImpact: beatImpact, t: t)
-                    .allowsHitTesting(false)
+                if shouldShowGlow {
+                    ambientHaloLayer(glowColor: glowColor, beatImpact: beatImpact, t: t)
+                        .allowsHitTesting(false)
+                }
                 
                 // 2. Аудио-крылья эквалайзера по бокам от челки (если выбран соответствующий режим)
-                if (music.settings.notchGlowMode == .audioWings || music.settings.notchGlowMode == .dynamicIsland) && !isExpanded {
+                if shouldShowGlow && (music.settings.notchGlowMode == .audioWings || music.settings.notchGlowMode == .dynamicIsland) && !isExpanded {
                     audioWingsLayer(glowColor: glowColor, beatImpact: beatImpact, currentPos: currentPos, t: t)
                         .allowsHitTesting(false)
                 }
@@ -279,8 +289,13 @@ struct NotchGlowView: View {
                 } else {
                     // Режимы Ореол и Крылья в свернутом состоянии
                     if !notch.hasPhysicalNotch {
-                        standardVirtualPill(glowColor: glowColor, beatImpact: beatImpact)
-                            .allowsHitTesting(false)
+                        if shouldShowGlow {
+                            standardVirtualPill(glowColor: glowColor, beatImpact: beatImpact)
+                                .allowsHitTesting(false)
+                        } else {
+                            standardVirtualPillWithoutGlow()
+                                .allowsHitTesting(false)
+                        }
                     }
                     Color.clear
                         .frame(width: notch.width + 36.0, height: notch.height + 12.0, alignment: .top)
@@ -322,7 +337,7 @@ struct NotchGlowView: View {
                 HStack(spacing: 2) {
                     ForEach(0..<3, id: \.self) { i in
                         Capsule()
-                            .fill(glowColor)
+                            .fill(shouldShowGlow ? glowColor : Theme.accent)
                             .frame(width: 2, height: music.playing ? CGFloat(6 + (i == 1 ? beatImpact * 8 : beatImpact * 4)) : 4)
                     }
                 }
@@ -381,7 +396,7 @@ struct NotchGlowView: View {
                         Capsule()
                             .fill(
                                 LinearGradient(
-                                    colors: [glowColor, glowColor.opacity(0.7)],
+                                    colors: shouldShowGlow ? [glowColor, glowColor.opacity(0.7)] : [Theme.accent, Theme.accent.opacity(0.7)],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -435,9 +450,21 @@ struct NotchGlowView: View {
                 .shadow(color: .black.opacity(0.55), radius: 16, y: 8)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .strokeBorder(glowColor.opacity(0.35), lineWidth: 1.0)
+                        .strokeBorder(shouldShowGlow ? glowColor.opacity(0.35) : Color.white.opacity(0.18), lineWidth: 1.0)
                 )
         )
+    }
+    
+    // Стандартный виртуальный островок без свечения (для эко-режима)
+    @ViewBuilder
+    private func standardVirtualPillWithoutGlow() -> some View {
+        Capsule()
+            .fill(Color.black.opacity(0.92))
+            .frame(width: notch.width, height: notch.height)
+            .overlay(
+                Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 0.8)
+            )
+            .position(x: notch.centerX, y: notch.height / 2.0)
     }
     
     // Стандартный виртуальный островок для мониторов без челки

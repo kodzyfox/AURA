@@ -17,9 +17,9 @@
     <key>CFBundleIconName</key>
     <string>AppIcon</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.1.9</string>
+    <string>0.2.0</string>
     <key>CFBundleVersion</key>
-    <string>10</string>
+    <string>11</string>
     <key>NSHumanReadableCopyright</key>
     <string>by Kodzy</string>
     <key>LSMinimumSystemVersion</key>

@@ -250,11 +250,11 @@ import SwiftUI
         }
         presets = presetStore.load()
 
-        // Предотвращаем замедление таймера при выключенном дисплее (App Nap).
+        // Предотвращаем замедление таймера при выключенном дисплее (App Nap) и автоматическое завершение (TAL).
         // Намеренно НЕ используем .latencyCritical — он блокирует переход CPU в idle
         // и приводит к перегреву даже на фоне.
         activityAssertion = ProcessInfo.processInfo.beginActivity(
-            options: [.userInitiatedAllowingIdleSystemSleep],
+            options: [.userInitiatedAllowingIdleSystemSleep, .automaticTerminationDisabled, .suddenTerminationDisabled],
             reason: "Aura continuous music monitoring and Last.fm scrobbler"
         )
 

@@ -1,10 +1,19 @@
 import SwiftUI
 import AppKit
+import os.log
+
+private let logger = Logger(subsystem: "studio.aura.mac", category: "Application")
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var didFinishInitialLaunch = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Полностью запрещаем автоматическое завершение процесса системой macOS (TAL - Automatic Termination)
+        // и Sudden Termination, чтобы приложение продолжало непрерывно работать в строке меню и скробблить треки.
+        ProcessInfo.processInfo.disableAutomaticTermination("Aura continuous background music visualizer and Last.fm scrobbler")
+        ProcessInfo.processInfo.disableSuddenTermination()
+        logger.info("Aura launched. Automatic Termination and Sudden Termination disabled.")
+
         if let iconUrl = Bundle.main.url(forResource: "AppIcon", withExtension: "png") ?? Bundle.main.url(forResource: "AppIcon", withExtension: "icns"),
            let img = NSImage(contentsOf: iconUrl) {
             NSApp.applicationIconImage = img
@@ -21,6 +30,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        let rawBehavior = UserDefaults.standard.string(forKey: "aura.windowCloseBehavior") ?? WindowCloseBehavior.hideToMenuBar.rawValue
+        let behavior = WindowCloseBehavior(rawValue: rawBehavior) ?? .hideToMenuBar
+        if behavior == .quitApp {
+            return true
+        }
         let backgroundMode = UserDefaults.standard.object(forKey: "aura.backgroundMode") as? Bool ?? true
         return !backgroundMode
     }

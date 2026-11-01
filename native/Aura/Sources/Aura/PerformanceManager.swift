@@ -58,10 +58,12 @@ enum VisualQuality: String, CaseIterable, Identifiable, Codable {
         }
         refresh()
 
-        // Опрос статуса питания каждые 15 сек
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 15.0, repeats: true) { [weak self] _ in
+        // Опрос статуса питания каждые 15 сек в режиме .common RunLoop
+        let timer = Timer(timeInterval: 15.0, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refresh() }
         }
+        RunLoop.main.add(timer, forMode: .common)
+        pollTimer = timer
     }
 
     var effectiveQuality: VisualQuality {

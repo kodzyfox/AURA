@@ -30,6 +30,10 @@
     <string>NSApplication</string>
     <key>NSAppSleepDisabled</key>
     <true/>
+    <key>NSSupportsAutomaticTermination</key>
+    <false/>
+    <key>NSSupportsSuddenTermination</key>
+    <false/>
     <key>NSAppleEventsUsageDescription</key>
     <string>Aura читает название и обложку текущего трека и управляет воспроизведением в Spotify и Apple Music для динамических обоев и атмосферного свечения.</string>
     <key>NSDesktopFolderUsageDescription</key>

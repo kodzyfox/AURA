@@ -75,4 +75,30 @@ final class ScrobbleModeTests: XCTestCase {
         // Reset to initial
         music.scrobbleModeNotchEnabled = initialNotch
     }
+
+    func testAutomaticTerminationDisabledInInfoPlist() {
+        // Проверяем, что в Info.plist отключено автоматическое и внезапное завершение macOS (TAL)
+        let infoPlistURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent() // AuraTests
+            .deletingLastPathComponent() // Tests
+            .deletingLastPathComponent() // native/Aura
+            .appendingPathComponent("Info.plist")
+        
+        guard let data = try? Data(contentsOf: infoPlistURL),
+              let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] else {
+            XCTFail("Failed to load or parse native/Aura/Info.plist at \(infoPlistURL.path)")
+            return
+        }
+
+        XCTAssertEqual(plist["NSSupportsAutomaticTermination"] as? Bool, false, "NSSupportsAutomaticTermination must be false to prevent macOS from terminating background scrobbler")
+        XCTAssertEqual(plist["NSSupportsSuddenTermination"] as? Bool, false, "NSSupportsSuddenTermination must be false to protect background state")
+        XCTAssertEqual(plist["NSAppSleepDisabled"] as? Bool, true, "NSAppSleepDisabled must be true to prevent App Nap from suspending timers")
+    }
+
+    func testAppDelegateBackgroundModePreserved() {
+        let delegate = AppDelegate()
+        UserDefaults.standard.set(true, forKey: "aura.backgroundMode")
+        UserDefaults.standard.set(WindowCloseBehavior.hideToMenuBar.rawValue, forKey: "aura.windowCloseBehavior")
+        XCTAssertFalse(delegate.applicationShouldTerminateAfterLastWindowClosed(NSApplication.shared))
+    }
 }
